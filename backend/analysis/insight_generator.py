@@ -7,12 +7,13 @@ from typing import Optional
 from dataclasses import dataclass
 
 from .team_analyzer import TeamAnalyzer
+from .ml_analyzer import MLAnalyzer
 
 
 @dataclass
 class Insight:
     """An actionable insight for the scouting report."""
-    category: str  # team, opponent, form
+    category: str  # team, opponent, form, ml
     priority: int  # 1-5, higher = more important
     fact: str
     consequence: str
@@ -33,8 +34,9 @@ class Insight:
 class InsightGenerator:
     """Generates actionable insights from team analysis."""
     
-    def __init__(self, team_analyzer: TeamAnalyzer):
+    def __init__(self, team_analyzer: TeamAnalyzer, ml_analyzer: Optional[MLAnalyzer] = None):
         self.team_analyzer = team_analyzer
+        self.ml_analyzer = ml_analyzer
         self.insights: list[Insight] = []
     
     def generate_all_insights(self) -> list[dict]:
@@ -46,6 +48,11 @@ class InsightGenerator:
         self._generate_form_insights()
         self._generate_streak_insights()
         self._generate_opponent_insights()
+        
+        # ML-based insights (if MLAnalyzer available)
+        if self.ml_analyzer:
+            self._generate_ml_weakness_insights()
+            self._generate_ml_correlation_insights()
         
         # Sort by priority
         self.insights.sort(key=lambda x: -x.priority)
@@ -185,9 +192,66 @@ class InsightGenerator:
         for insight in top_insights:
             recommendations.append(insight.recommendation)
         
+        # Add ML-based recommendations if available
+        if self.ml_analyzer:
+            ml_insights = self.ml_analyzer.get_top_insights(3)
+            for ml_insight in ml_insights:
+                if ml_insight.get("recommendation") and len(recommendations) < 7:
+                    recommendations.append(ml_insight["recommendation"])
+        
         # Add default recommendations if not enough
         if len(recommendations) < 3:
             recommendations.append("Study their recent matches for patterns")
             recommendations.append("Focus on your own strengths")
         
         return recommendations[:5]
+    
+    def _generate_ml_weakness_insights(self) -> None:
+        """Generate insights from ML weakness scoring."""
+        if not self.ml_analyzer:
+            return
+        
+        weaknesses = self.ml_analyzer.weakness_scorer.calculate_weaknesses()
+        
+        for weakness in weaknesses[:3]:  # Top 3 weaknesses
+            priority = 5 if weakness["score"] >= 70 else (4 if weakness["score"] >= 50 else 3)
+            
+            self.insights.append(Insight(
+                category="ml",
+                priority=priority,
+                fact=weakness["description"],
+                consequence=f"Exploitability score: {weakness['score']}/100",
+                recommendation=weakness["recommendation"],
+                data=weakness.get("data")
+            ))
+    
+    def _generate_ml_correlation_insights(self) -> None:
+        """Generate insights from loss correlation analysis."""
+        if not self.ml_analyzer:
+            return
+        
+        correlations = self.ml_analyzer.loss_correlator.analyze_correlations()
+        
+        for corr in correlations[:2]:  # Top 2 patterns
+            self.insights.append(Insight(
+                category="ml",
+                priority=4,
+                fact=corr["insight"],
+                consequence=f"Loss correlation: {corr['loss_correlation']}% ({corr['significance']} significance)",
+                recommendation=f"Target their weakness: {corr['factor']}",
+                data={
+                    "factor": corr["factor"],
+                    "correlation": corr["loss_correlation"],
+                    "sample_size": corr["sample_size"]
+                }
+            ))
+    
+    def get_ml_analysis(self) -> dict:
+        """Get full ML analysis summary."""
+        if not self.ml_analyzer:
+            return {"available": False, "note": "MLAnalyzer not configured"}
+        
+        return {
+            "available": True,
+            **self.ml_analyzer.analyze()
+        }

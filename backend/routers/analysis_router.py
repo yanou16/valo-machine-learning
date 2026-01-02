@@ -5,6 +5,7 @@ from typing import Optional
 from clients.grid_client import GridClient
 from analysis.team_analyzer import TeamAnalyzer
 from analysis.insight_generator import InsightGenerator
+from analysis.ml_analyzer import MLAnalyzer
 
 
 router = APIRouter(prefix="/api/analysis", tags=["Analysis"])
@@ -132,9 +133,27 @@ async def analyze_team(request: AnalyzeTeamRequest):
         )
         team_analyzer.add_series_list(detailed_series, metadata_list)
         
-        # 6. Generate insights
-        insight_gen = InsightGenerator(team_analyzer=team_analyzer)
+        # 6. ML Analysis - feed data to MLAnalyzer
+        ml_analyzer = MLAnalyzer()
+        for series in detailed_series:
+            for game in series.get("games", []):
+                map_name = game.get("map", {}).get("name", "Unknown")
+                won = False
+                for t in game.get("teams", []):
+                    if t.get("name", "").lower() == team.get("name", "").lower():
+                        won = t.get("won", False)
+                        break
+                ml_analyzer.add_match_data(
+                    won=won,
+                    map_name=map_name,
+                    agents=[],  # Agent data requires Full Access API
+                    opponent=None
+                )
+        
+        # 7. Generate insights with ML
+        insight_gen = InsightGenerator(team_analyzer=team_analyzer, ml_analyzer=ml_analyzer)
         insights = insight_gen.generate_all_insights()
+        ml_analysis = insight_gen.get_ml_analysis()
         
         return {
             "team": team,
@@ -142,6 +161,7 @@ async def analyze_team(request: AnalyzeTeamRequest):
             "insights": insights,
             "summary": insight_gen.get_executive_summary(),
             "how_to_win": insight_gen.get_how_to_win(),
+            "ml_analysis": ml_analysis,
             "matches_analyzed": len(detailed_series),
             "data_source": data_source,
             "note": "Valorant detailed game data requires Full Access API. Using series-level metadata." if data_source == "metadata_only" else None
