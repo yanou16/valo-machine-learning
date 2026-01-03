@@ -36,15 +36,22 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  // Dual Mode State
+  const [searchMode, setSearchMode] = useState<'scouting' | 'versus'>('scouting');
+  const [teamA, setTeamA] = useState('');
+  const [teamB, setTeamB] = useState('');
+  const [showTeamASelector, setShowTeamASelector] = useState(false);
+  const [showTeamBSelector, setShowTeamBSelector] = useState(false);
+
   const popularTeams = [
     { name: 'Sentinels', region: 'Americas' },
-    { name: 'FNATIC', region: 'EMEA' },
-    { name: 'Paper Rex', region: 'Pacific' },
-    { name: 'DRX', region: 'Pacific' },
-    { name: 'LOUD', region: 'Americas' },
-    { name: 'Team Liquid', region: 'EMEA' },
-    { name: 'Gen.G', region: 'Pacific' },
     { name: 'Cloud9', region: 'Americas' },
+    { name: 'LOUD', region: 'Americas' },
+    { name: '100 Thieves', region: 'Americas' },
+    { name: 'NRG', region: 'Americas' },
+    { name: 'Evil Geniuses', region: 'Americas' },
+    { name: 'Leviatan', region: 'Americas' },
+    { name: 'Paper Rex', region: 'Pacific' },
   ];
 
   useEffect(() => {
@@ -61,6 +68,12 @@ export default function Home() {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleGenerate();
+  };
+
+  const handleVersusPredict = () => {
+    if (teamA.trim() && teamB.trim()) {
+      router.push(`/report/versus?team1=${encodeURIComponent(teamA)}&team2=${encodeURIComponent(teamB)}`);
+    }
   };
 
   const stats = [
@@ -223,135 +236,298 @@ export default function Home() {
             Instant scouting reports. Exploitable weaknesses. Winning strategies.
           </p>
 
-          {/* Command Palette Search */}
-          <div
-            className={cn(
-              "w-full max-w-2xl mx-auto relative transition-all duration-300",
-              isFocused && "scale-[1.02]"
-            )}
-          >
-            {/* Glow Effect */}
-            <div className={cn(
-              "absolute -inset-1 bg-gradient-to-r from-[#ff4655]/30 via-purple-500/20 to-[#ff4655]/30 rounded-2xl blur-xl transition-opacity duration-500",
-              isFocused ? "opacity-100" : "opacity-0"
-            )} />
-
-            {/* Input Container */}
-            <div className={cn(
-              "relative h-16 bg-white/5 backdrop-blur-xl rounded-2xl border transition-all duration-300 flex items-center",
-              isFocused
-                ? "border-[#ff4655]/40 ring-2 ring-[#ff4655]/20"
-                : "border-white/10 hover:border-white/20"
-            )}>
-              {/* Quick Team Selector */}
-              <div className="relative pl-2">
+          {/* ============ DUAL MODE SEARCH ============ */}
+          <div className="w-full max-w-2xl mx-auto">
+            {/* Mode Switcher Tabs */}
+            <div className="flex justify-center mb-4">
+              <div className="inline-flex p-1 bg-white/5 border border-white/10 rounded-full">
                 <button
-                  onClick={() => setShowTeamSelector(!showTeamSelector)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
+                  onClick={() => setSearchMode('scouting')}
+                  className={cn(
+                    "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                    searchMode === 'scouting'
+                      ? "bg-white text-slate-900 shadow-lg"
+                      : "text-slate-400 hover:text-white"
+                  )}
                 >
-                  <Shield className="w-4 h-4 text-[#ff4655]" />
-                  <ChevronDown className="w-3 h-3 text-slate-500" />
+                  🕵️ Scouting Report
                 </button>
-
-                {showTeamSelector && (
-                  <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
-                    <div className="px-3 py-2 border-b border-white/10">
-                      <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">Popular Teams</span>
-                    </div>
-                    {popularTeams.map((team) => (
-                      <button
-                        key={team.name}
-                        onClick={() => {
-                          setTeamName(team.name);
-                          setShowTeamSelector(false);
-                        }}
-                        className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-slate-500 group-hover:text-[#ff4655] transition-colors" />
-                          <span className="text-slate-300 group-hover:text-white transition-colors">{team.name}</span>
-                        </div>
-                        <span className="text-xs text-slate-600">{team.region}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Divider */}
-              <div className="h-6 w-px bg-white/10 mx-2" />
-
-              {/* Search Icon */}
-              <div className="pl-1">
-                <Search className={cn(
-                  "w-5 h-5 transition-colors",
-                  isFocused ? "text-[#ff4655]" : "text-slate-500"
-                )} />
-              </div>
-
-              {/* Input */}
-              <input
-                type="text"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setIsFocused(true)}
-                onBlur={() => setIsFocused(false)}
-                placeholder="Search team..."
-                className="flex-1 h-full px-4 bg-transparent text-white text-lg placeholder:text-slate-500 focus:outline-none"
-              />
-
-              {/* Match Count Badge */}
-              <div className="relative mr-3">
                 <button
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
+                  onClick={() => setSearchMode('versus')}
+                  className={cn(
+                    "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                    searchMode === 'versus'
+                      ? "bg-white text-slate-900 shadow-lg"
+                      : "text-slate-400 hover:text-white"
+                  )}
                 >
-                  <span className="text-slate-500">Matches:</span>
-                  <span className="font-mono font-semibold text-white">{matchCount}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                  ⚔️ Match Prediction
                 </button>
-
-                {showDropdown && (
-                  <div className="absolute top-full right-0 mt-2 w-36 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
-                    {[5, 10, 15, 20].map((count) => (
-                      <button
-                        key={count}
-                        onClick={() => { setMatchCount(count); setShowDropdown(false); }}
-                        className={cn(
-                          "w-full px-4 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between",
-                          matchCount === count ? "text-[#ff4655] bg-[#ff4655]/10" : "text-slate-300"
-                        )}
-                      >
-                        {count} matches
-                        {matchCount === count && <Sparkles className="w-3 h-3" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
-
-              {/* Generate Button */}
-              <button
-                onClick={handleGenerate}
-                disabled={!teamName.trim()}
-                className={cn(
-                  "h-12 px-6 mr-2 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2",
-                  teamName.trim()
-                    ? "bg-gradient-to-r from-[#ff4655] to-[#ff5a67] text-white hover:shadow-lg hover:shadow-[#ff4655]/30 hover:scale-105"
-                    : "bg-slate-800 text-slate-500 cursor-not-allowed"
-                )}
-              >
-                Generate
-                <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
-          </div>
 
-          {/* Keyboard Hint */}
-          <div className="mt-4 flex items-center justify-center gap-2 text-slate-600 text-sm">
-            <kbd className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs font-mono">↵</kbd>
-            <span>to search</span>
+            {/* Search Container */}
+            <div
+              className={cn(
+                "relative transition-all duration-300",
+                isFocused && "scale-[1.02]"
+              )}
+            >
+              {/* Glow Effect */}
+              <div className={cn(
+                "absolute -inset-1 bg-gradient-to-r from-[#ff4655]/30 via-purple-500/20 to-[#ff4655]/30 rounded-2xl blur-xl transition-opacity duration-500",
+                isFocused ? "opacity-100" : "opacity-0"
+              )} />
+
+              {/* ========== SCOUTING MODE ========== */}
+              {searchMode === 'scouting' && (
+                <div className={cn(
+                  "relative h-16 bg-white/5 backdrop-blur-xl rounded-2xl border transition-all duration-300 flex items-center",
+                  isFocused
+                    ? "border-[#ff4655]/40 ring-2 ring-[#ff4655]/20"
+                    : "border-white/10 hover:border-white/20"
+                )}>
+                  {/* Quick Team Selector */}
+                  <div className="relative pl-2">
+                    <button
+                      onClick={() => setShowTeamSelector(!showTeamSelector)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
+                    >
+                      <Shield className="w-4 h-4 text-[#ff4655]" />
+                      <ChevronDown className="w-3 h-3 text-slate-500" />
+                    </button>
+
+                    {showTeamSelector && (
+                      <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
+                        <div className="px-3 py-2 border-b border-white/10">
+                          <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">Popular Teams</span>
+                        </div>
+                        {popularTeams.map((team) => (
+                          <button
+                            key={team.name}
+                            onClick={() => {
+                              setTeamName(team.name);
+                              setShowTeamSelector(false);
+                            }}
+                            className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between group"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-slate-500 group-hover:text-[#ff4655] transition-colors" />
+                              <span className="text-slate-300 group-hover:text-white transition-colors">{team.name}</span>
+                            </div>
+                            <span className="text-xs text-slate-600">{team.region}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="h-6 w-px bg-white/10 mx-2" />
+
+                  <div className="pl-1">
+                    <Search className={cn(
+                      "w-5 h-5 transition-colors",
+                      isFocused ? "text-[#ff4655]" : "text-slate-500"
+                    )} />
+                  </div>
+
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    placeholder="Search team..."
+                    className="flex-1 h-full px-4 bg-transparent text-white text-lg placeholder:text-slate-500 focus:outline-none"
+                  />
+
+                  <div className="relative mr-3">
+                    <button
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
+                    >
+                      <span className="text-slate-500">Matches:</span>
+                      <span className="font-mono font-semibold text-white">{matchCount}</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                    </button>
+
+                    {showDropdown && (
+                      <div className="absolute top-full right-0 mt-2 w-36 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
+                        {[5, 10, 15, 20].map((count) => (
+                          <button
+                            key={count}
+                            onClick={() => { setMatchCount(count); setShowDropdown(false); }}
+                            className={cn(
+                              "w-full px-4 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between",
+                              matchCount === count ? "text-[#ff4655] bg-[#ff4655]/10" : "text-slate-300"
+                            )}
+                          >
+                            {count} matches
+                            {matchCount === count && <Sparkles className="w-3 h-3" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleGenerate}
+                    disabled={!teamName.trim()}
+                    className={cn(
+                      "h-12 px-6 mr-2 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2",
+                      teamName.trim()
+                        ? "bg-gradient-to-r from-[#ff4655] to-[#ff5a67] text-white hover:shadow-lg hover:shadow-[#ff4655]/30 hover:scale-105"
+                        : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                    )}
+                  >
+                    Generate
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* ========== VERSUS MODE ========== */}
+              {searchMode === 'versus' && (
+                <div className={cn(
+                  "relative bg-white/5 backdrop-blur-xl rounded-2xl border transition-all duration-300 p-4",
+                  isFocused
+                    ? "border-[#ff4655]/40 ring-2 ring-[#ff4655]/20"
+                    : "border-white/10 hover:border-white/20"
+                )}>
+                  <div className="flex flex-col md:flex-row items-center gap-4">
+                    {/* Team A Input */}
+                    <div className="flex-1 w-full">
+                      <label className="block text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Your Team</label>
+                      <div className="relative flex items-center h-12 bg-white/5 rounded-xl border border-white/10">
+                        <div className="relative pl-2">
+                          <button
+                            onClick={() => setShowTeamASelector(!showTeamASelector)}
+                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
+                          >
+                            <Shield className="w-4 h-4 text-emerald-400" />
+                            <ChevronDown className="w-3 h-3 text-slate-500" />
+                          </button>
+
+                          {showTeamASelector && (
+                            <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
+                              <div className="px-3 py-2 border-b border-white/10">
+                                <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">Popular Teams</span>
+                              </div>
+                              {popularTeams.map((team) => (
+                                <button
+                                  key={team.name}
+                                  onClick={() => {
+                                    setTeamA(team.name);
+                                    setShowTeamASelector(false);
+                                  }}
+                                  className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between group"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
+                                    <span className="text-slate-300 group-hover:text-white transition-colors">{team.name}</span>
+                                  </div>
+                                  <span className="text-xs text-slate-600">{team.region}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          value={teamA}
+                          onChange={(e) => setTeamA(e.target.value)}
+                          onFocus={() => setIsFocused(true)}
+                          onBlur={() => setIsFocused(false)}
+                          placeholder="Enter team..."
+                          className="flex-1 h-full px-3 bg-transparent text-white placeholder:text-slate-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* VS Badge */}
+                    <div className="relative flex-shrink-0">
+                      <div className="absolute inset-0 bg-[#ff4655] blur-xl opacity-40 rounded-full" />
+                      <div className="relative w-12 h-12 bg-slate-900 border-2 border-[#ff4655] rounded-full flex items-center justify-center">
+                        <span className="text-[#ff4655] font-black text-sm">VS</span>
+                      </div>
+                    </div>
+
+                    {/* Team B Input */}
+                    <div className="flex-1 w-full">
+                      <label className="block text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Opponent</label>
+                      <div className="relative flex items-center h-12 bg-white/5 rounded-xl border border-white/10">
+                        <div className="relative pl-2">
+                          <button
+                            onClick={() => setShowTeamBSelector(!showTeamBSelector)}
+                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
+                          >
+                            <Shield className="w-4 h-4 text-[#ff4655]" />
+                            <ChevronDown className="w-3 h-3 text-slate-500" />
+                          </button>
+
+                          {showTeamBSelector && (
+                            <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
+                              <div className="px-3 py-2 border-b border-white/10">
+                                <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">Popular Teams</span>
+                              </div>
+                              {popularTeams.map((team) => (
+                                <button
+                                  key={team.name}
+                                  onClick={() => {
+                                    setTeamB(team.name);
+                                    setShowTeamBSelector(false);
+                                  }}
+                                  className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between group"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Users className="w-4 h-4 text-slate-500 group-hover:text-[#ff4655] transition-colors" />
+                                    <span className="text-slate-300 group-hover:text-white transition-colors">{team.name}</span>
+                                  </div>
+                                  <span className="text-xs text-slate-600">{team.region}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          value={teamB}
+                          onChange={(e) => setTeamB(e.target.value)}
+                          onFocus={() => setIsFocused(true)}
+                          onBlur={() => setIsFocused(false)}
+                          placeholder="Enter opponent..."
+                          className="flex-1 h-full px-3 bg-transparent text-white placeholder:text-slate-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Predict Button */}
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      onClick={handleVersusPredict}
+                      disabled={!teamA.trim() || !teamB.trim()}
+                      className={cn(
+                        "h-12 px-8 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2",
+                        teamA.trim() && teamB.trim()
+                          ? "bg-gradient-to-r from-[#ff4655] to-[#ff5a67] text-white hover:shadow-lg hover:shadow-[#ff4655]/30 hover:scale-105"
+                          : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                      )}
+                    >
+                      Predict Match
+                      <Crosshair className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Keyboard Hint */}
+            <div className="mt-4 flex items-center justify-center gap-2 text-slate-600 text-sm">
+              <kbd className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs font-mono">↵</kbd>
+              <span>{searchMode === 'scouting' ? 'to search' : 'to predict'}</span>
+            </div>
           </div>
 
           {/* Analytics Preview (3D Tilt) */}

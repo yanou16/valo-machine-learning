@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Optional
 
 from clients.grid_client import GridClient
-from clients.file_download import FileDownloadClient
 
 
 class DataService:
@@ -12,7 +11,6 @@ class DataService:
     
     def __init__(self, data_dir: Optional[Path] = None):
         self.grid_client = GridClient()
-        self.file_client = FileDownloadClient()
         self.data_dir = data_dir or Path(__file__).parent.parent.parent / "data"
     
     async def ingest_team_data(
@@ -76,23 +74,8 @@ class DataService:
         team_name: str,
         series_ids: list[str]
     ) -> list[Path]:
-        """Download gameplay files for specified series."""
-        downloaded = []
-        
-        team_dir = self.data_dir / "raw" / self._sanitize_name(team_name)
-        team_dir.mkdir(parents=True, exist_ok=True)
-        
-        for series_id in series_ids:
-            try:
-                files = await self.file_client.download_series_data(
-                    series_id,
-                    save_dir=team_dir / series_id
-                )
-                downloaded.extend(files)
-            except Exception as e:
-                print(f"Error downloading series {series_id}: {e}")
-        
-        return downloaded
+        """Download gameplay files for specified series. (Disabled)"""
+        return []
     
     async def _save_metadata(self, team_name: str, data: dict) -> Path:
         """Save ingestion metadata to JSON."""

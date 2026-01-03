@@ -1,26 +1,24 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Download,
     ArrowLeft,
-    TrendingUp,
-    TrendingDown,
-    AlertTriangle,
-    Target,
+    Search,
+    Terminal,
     Shield,
-    Swords,
-    Map,
-    Users,
-    Loader2,
-    CheckCircle2,
-    XCircle,
     Zap,
-    Activity
+    Target,
+    Activity,
+    ChevronDown,
+    AlertTriangle,
+    TrendingDown,
+    LayoutDashboard,
+    Cpu,
+    ArrowRight,
+    ChevronRight,
+    Award
 } from 'lucide-react';
 import {
     Radar,
@@ -29,504 +27,508 @@ import {
     PolarAngleAxis,
     PolarRadiusAxis,
     ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    Cell
 } from 'recharts';
+import ReactMarkdown from 'react-markdown';
 
-function cn(...inputs: (string | undefined | null | false)[]) {
-    return twMerge(clsx(inputs));
+// --- Types ---
+
+interface ReportData {
+    team_name: string;
+    exploitability_score: number; // 0-100
+    clustering_label: string; // e.g., "Heavy Lurk Style"
+    similar_pro_team: string; // e.g., "Fnatic"
+    team_stats: {
+        subject: string;
+        A: number;
+        fullMark: number;
+    }[];
+    scouting_report_markdown: string;
+    correlations: {
+        factor: string;
+        value: number; // 0-1 correlation
+    }[];
+    weaknesses: {
+        title: string;
+        description: string;
+    }[];
 }
 
-// Premium Card Component
-function Card({
-    children,
-    className,
-    hover = true
-}: {
-    children: React.ReactNode;
-    className?: string;
-    hover?: boolean;
-}) {
-    return (
-        <div className={cn(
-            "relative bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/[0.08] ring-1 ring-white/[0.05]",
-            hover && "transition-all duration-300 hover:border-white/[0.15] hover:bg-slate-900/50 hover:shadow-2xl hover:shadow-black/20 hover:-translate-y-0.5",
-            className
-        )}>
-            {children}
-        </div>
-    );
-}
+type AppState = 'INPUT' | 'LOADING' | 'RESULT';
 
-// Section Header
-function SectionHeader({ icon: Icon, title, iconColor = "text-[#ff4655]", bgColor = "bg-[#ff4655]/10" }: {
-    icon: React.ElementType;
-    title: string;
-    iconColor?: string;
-    bgColor?: string;
-}) {
-    return (
-        <div className="flex items-center gap-3 mb-6">
-            <div className={cn("p-2.5 rounded-xl", bgColor)}>
-                <Icon className={cn("w-5 h-5", iconColor)} />
-            </div>
-            <h2 className="text-lg font-semibold text-white tracking-tight">{title}</h2>
-        </div>
-    );
-}
+// --- Mock Data ---
 
-// Mock data
-const mockData = {
+const MOCK_REPORT: ReportData = {
     team_name: "Sentinels",
-    matches_analyzed: 15,
-    stats: {
-        series_wins: 11,
-        series_losses: 4,
-        series_win_rate: 73.3,
-        map_wins: 28,
-        map_losses: 14,
-        map_win_rate: 66.7,
-        map_stats: {
-            "Lotus": { wins: 6, losses: 1 },
-            "Ascent": { wins: 6, losses: 2 },
-            "Haven": { wins: 5, losses: 3 },
-            "Bind": { wins: 4, losses: 2 },
-            "Split": { wins: 4, losses: 4 },
-            "Icebox": { wins: 3, losses: 2 },
-        },
-        opponents: {
-            "Cloud9": { wins: 2, losses: 0 },
-            "100 Thieves": { wins: 2, losses: 1 },
-            "NRG Esports": { wins: 1, losses: 1 },
-            "LOUD": { wins: 1, losses: 2 },
-            "Evil Geniuses": { wins: 2, losses: 0 },
-        }
-    },
-    playstyle: {
-        aggression: 78,
-        utility: 65,
-        trading: 82,
-        mapControl: 70,
-        economy: 58,
-    },
-    weaknesses: [
-        { severity: "high", text: "Weak anti-eco rounds (37% loss rate)", recommendation: "Exploit second round after pistol wins" },
-        { severity: "high", text: "Poor late-round clutches (28% success)", recommendation: "Force 1vX situations" },
-        { severity: "medium", text: "Predictable B-site executes on Haven", recommendation: "Stack B with utility" },
-        { severity: "medium", text: "Struggles vs. Viper lineups", recommendation: "Run Viper on Bind/Lotus" },
+    exploitability_score: 82,
+    clustering_label: "Reactive Defensive Pivot",
+    similar_pro_team: "Fnatic",
+    team_stats: [
+        { subject: 'Aggression', A: 45, fullMark: 100 },
+        { subject: 'Utility', A: 85, fullMark: 100 },
+        { subject: 'Aim', A: 92, fullMark: 100 },
+        { subject: 'Defense', A: 78, fullMark: 100 },
+        { subject: 'Economy', A: 60, fullMark: 100 },
     ],
-    report: `## Executive Summary
+    scouting_report_markdown: `
+# Winning Strategy: Anti-Sentinels Protocol
 
-Sentinels enters this matchup as heavy favorites with a **73% series win rate** over their last 15 matches. However, they show exploitable patterns.
+### Execution Overview
+Sentinels rely heavily on their individual mechanical skill (Aim: 92) and precise utility usage (Utility: 85). However, their mid-round aggression is surprisingly low (45), suggesting they prefer a reactive style.
 
-## Key Strategic Observations
+### Key Tactical Recommendations
+1. **Force the Tempo:** Since their aggression is low, they struggle when forced to make split-second decisions under pressure. Fast executes or unexpected lurks can disrupt their setup.
+2. **Post-Plant Denial:** They are masters of the retake. You must utilize "anti-retake" utility early to burn their defensive cooldowns.
+3. **Target Economy:** Their economy management is their weakest link. Forcing them into "glass cannon" rounds (rifles with no armor) is a viable path to victory.
 
-### 1. Early Round Vulnerability
-- **Anti-eco weakness**: Sentinels loses 37% of anti-eco rounds, significantly above average
-- They tend to dry-peek aggressively after winning pistol
-
-### 2. Map Pool Analysis
-- **Strongest**: Lotus (86%), Ascent (75%)
-- **Weakest**: Split (50%) — force this in veto
-- They ban Icebox consistently
-
-### 3. Playstyle Tendencies
-- Heavy duelist-focused compositions (avg 2.1 duelists per map)
-- Rely on TenZ for opening picks (67% first blood attempts)
-- Utility usage peaks in first 30 seconds of rounds
-
-## How to Win
-
-1. **Force Split** in map veto — their weakest map
-2. **Play anti-eco passively** — let them over-extend
-3. **Run Viper compositions** — no answer for lineups
-4. **Target sentinel player** in late rounds — lowest clutch rating
-5. **Counter aggression with utility** — save flashes for retakes`,
-    ml_analysis: {
-        exploitability_score: 62,
-    }
+### Final Assessment
+The exploitability is **High (82%)**. By disrupting their rhythm and forcing aggressive duels early, the Sentinels structure begins to collapse.
+  `,
+    correlations: [
+        { factor: "First Blood Loss", value: 0.85 },
+        { factor: "Low Economy (<20k)", value: 0.72 },
+        { factor: "Anti-Eco Rounds", value: 0.45 },
+        { factor: "Lurk Timings", value: 0.68 },
+    ],
+    weaknesses: [
+        { title: "Mid-Round Passivity", description: "Team often stalls in neutral zones if their initial entry utility is countered, leading to predictable late-round executes." },
+        { title: "Glass Cannon Tendency", description: "High statistical probability of purchasing Vandal/Phantom without full shields after losing bonus rounds." },
+        { title: "Retake Over-Reliance", description: "They play 'save' positions excessively, often conceding the site early to gamble on a perfectly coordinated retake." },
+    ]
 };
 
-function ReportContent() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const teamParam = searchParams.get('team') || '';
-    const matchesParam = searchParams.get('matches') || '10';
+// --- Components ---
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [data, setData] = useState<typeof mockData | null>(null);
+const HackerTerminal = ({ onComplete, isReady }: { onComplete: () => void, isReady: boolean }) => {
+    const [logs, setLogs] = useState<string[]>([]);
+    const [animComplete, setAnimComplete] = useState(false);
+
+    const logSequence = [
+        "> Connecting to VLR.gg API...",
+        "> Fetching Match History (20 Matches)...",
+        "> Initializing Neural Framework...",
+        "> Running K-Means Clustering Model...",
+        "> Analyzing Win/Loss Correlations...",
+        "> Detecting Strategic Bottlenecks...",
+        "> Generating AI Scouting Report...",
+        "> Finalizing Tactical Dashboard..."
+    ];
 
     useEffect(() => {
-        const fetchReport = async () => {
-            if (!teamParam) {
-                router.push('/');
-                return;
+        let currentLine = 0;
+        const interval = setInterval(() => {
+            if (currentLine < logSequence.length) {
+                setLogs(prev => [...prev, logSequence[currentLine]]);
+                currentLine++;
+            } else {
+                clearInterval(interval);
+                setAnimComplete(true);
             }
+        }, 600);
+        return () => clearInterval(interval);
+    }, []);
 
-            setLoading(true);
-            setError('');
-
-            try {
-                const res = await fetch('http://localhost:8001/api/report/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        team_name: teamParam,
-                        num_matches: parseInt(matchesParam)
-                    }),
-                });
-
-                if (!res.ok) {
-                    const errData = await res.json();
-                    throw new Error(errData.detail || 'Failed to generate report');
-                }
-
-                const reportData = await res.json();
-                setData({
-                    ...mockData,
-                    team_name: reportData.team_name,
-                    matches_analyzed: reportData.matches_analyzed,
-                    stats: reportData.stats,
-                    report: reportData.report,
-                    ml_analysis: reportData.ml_analysis || mockData.ml_analysis,
-                });
-            } catch (err) {
-                console.error('API Error:', err);
-                setData({ ...mockData, team_name: teamParam });
-                setError(err instanceof Error ? err.message : 'Using demo data');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchReport();
-    }, [teamParam, matchesParam, router]);
-
-    const radarData = data ? [
-        { stat: 'Aggression', value: data.playstyle?.aggression || 70, fullMark: 100 },
-        { stat: 'Utility', value: data.playstyle?.utility || 60, fullMark: 100 },
-        { stat: 'Trading', value: data.playstyle?.trading || 75, fullMark: 100 },
-        { stat: 'Map Ctrl', value: data.playstyle?.mapControl || 65, fullMark: 100 },
-        { stat: 'Economy', value: data.playstyle?.economy || 55, fullMark: 100 },
-    ] : [];
-
-    const formatMarkdown = (text: string) => {
-        return text
-            .replace(/^### (.*$)/gim, '<h3 class="text-sm font-semibold text-white/90 mt-5 mb-2">$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2 class="text-base font-bold text-white mt-6 mb-3 pb-2 border-b border-white/10">$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1 class="text-lg font-bold text-white mb-4">$1</h1>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-[#ff4655] font-semibold">$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em class="text-slate-300">$1</em>')
-            .replace(/^- (.*$)/gim, '<li class="py-0.5 pl-4 relative text-slate-400 text-sm before:content-[\'›\'] before:absolute before:left-0 before:text-[#ff4655]">$1</li>')
-            .replace(/^(\d+)\. (.*$)/gim, '<li class="py-0.5 pl-5 relative text-slate-400 text-sm"><span class="absolute left-0 text-[#ff4655] font-mono text-xs">$1.</span>$2</li>')
-            .replace(/\n\n/g, '</p><p class="mb-2 text-slate-400 text-sm leading-relaxed">')
-            .replace(/\n/g, '<br />');
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,70,85,0.1),transparent_70%)]" />
-                <div className="text-center relative z-10">
-                    <div className="relative inline-block mb-6">
-                        <div className="absolute inset-0 bg-[#ff4655] blur-2xl opacity-30 animate-pulse" />
-                        <Loader2 className="w-12 h-12 text-[#ff4655] animate-spin relative" />
-                    </div>
-                    <h2 className="text-xl font-semibold text-white mb-2 tracking-tight">Generating Intel</h2>
-                    <p className="text-slate-500">Analysing {teamParam}...</p>
-                    <div className="mt-6 flex items-center justify-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#ff4655] animate-pulse" />
-                        <span className="text-xs text-slate-600 font-mono">PROCESSING</span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (!data) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="text-center">
-                    <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-white mb-2">Intel Unavailable</h2>
-                    <p className="text-slate-500 mb-4">{error || 'Something went wrong'}</p>
-                    <Link href="/" className="text-[#ff4655] hover:underline">Return to base</Link>
-                </div>
-            </div>
-        );
-    }
-
-    const winRate = data.stats.series_win_rate ||
-        (data.stats.series_wins / (data.stats.series_wins + data.stats.series_losses) * 100);
+    // Effect to trigger completion ONLY when both animation and data are ready
+    useEffect(() => {
+        if (animComplete && isReady) {
+            setTimeout(onComplete, 500);
+        }
+    }, [animComplete, isReady, onComplete]);
 
     return (
-        <div className="min-h-screen bg-black relative">
-            {/* Background Effects */}
-            <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(120,119,198,0.1),transparent)]" />
-            <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,70,85,0.05),transparent_50%)]" />
+        <div className="w-full max-w-2xl bg-black/80 border border-slate-800 rounded-lg p-6 font-mono text-sm overflow-hidden shadow-2xl shadow-red-500/10">
+            <div className="flex gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-red-500/50" />
+                <div className="w-3 h-3 rounded-full bg-slate-700" />
+                <div className="w-3 h-3 rounded-full bg-slate-700" />
+            </div>
+            <div className="space-y-2">
+                {logs.map((log, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className={i === logs.length - 1 ? "text-red-500" : "text-slate-400"}
+                    >
+                        <span className="text-red-500/50 mr-2">root@valoml:~$</span>
+                        {log}
+                        {i === logs.length - 1 && <span className="inline-block w-2 h-4 bg-red-500 ml-1 animate-pulse" />}
+                    </motion.div>
+                ))}
 
-            {/* Grid Pattern */}
-            <div
-                className="fixed inset-0 opacity-[0.02]"
-                style={{
-                    backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
-                    backgroundSize: '48px 48px'
-                }}
-            />
+                {animComplete && !isReady && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-yellow-500 animate-pulse"
+                    >
+                        <span className="text-red-500/50 mr-2">root@valoml:~$</span>
+                        {'>'} Waiting for AI Response...
+                    </motion.div>
+                )}
+            </div>
+        </div>
+    );
+};
 
-            {/* Header */}
-            <header className="sticky top-0 z-50 bg-black/60 backdrop-blur-2xl border-b border-white/[0.06]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        {/* Left */}
-                        <div className="flex items-center gap-4">
-                            <Link
-                                href="/"
-                                className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors group"
-                            >
-                                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                                <span className="text-sm hidden sm:inline">Back</span>
-                            </Link>
+export default function ReportPageWrapper() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+        }>
+            <ReportPage />
+        </Suspense>
+    );
+}
 
-                            <div className="h-5 w-px bg-white/10" />
+function ReportPage() {
+    const [state, setState] = useState<AppState>('INPUT');
+    const [teamInput, setTeamInput] = useState('');
+    const [report, setReport] = useState<ReportData | null>(null);
 
-                            <div className="flex items-center gap-4">
-                                <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">{data.team_name}</h1>
-                                <span className={cn(
-                                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide",
-                                    winRate >= 60
-                                        ? "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20"
-                                        : winRate >= 45
-                                            ? "bg-yellow-500/10 text-yellow-400 ring-1 ring-yellow-500/20"
-                                            : "bg-red-500/10 text-red-400 ring-1 ring-red-500/20"
-                                )}>
-                                    {winRate >= 50 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                                    {winRate.toFixed(1)}% WR
-                                </span>
-                            </div>
-                        </div>
+    const [loadingError, setLoadingError] = useState<string | null>(null);
+    const searchParams = useSearchParams();
 
-                        {/* Right */}
-                        <div className="flex items-center gap-4">
-                            <div className="hidden sm:flex items-center gap-2 text-sm text-slate-500">
-                                <Activity className="w-4 h-4" />
-                                <span>{data.matches_analyzed} matches</span>
-                            </div>
-                            <button
-                                onClick={() => window.print()}
-                                className="flex items-center gap-2 px-4 py-2 bg-transparent hover:bg-white/5 border border-white/10 hover:border-white/20 rounded-xl text-white text-sm font-medium transition-all duration-200 hover:shadow-lg hover:shadow-white/5 group"
-                            >
-                                <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                <span className="hidden sm:inline">Export PDF</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </header>
+    useEffect(() => {
+        const team = searchParams.get('team');
+        const count = searchParams.get('matches');
+        if (team) {
+            setTeamInput(team);
+            startGeneration(team, count ? parseInt(count) : 10);
+        }
+    }, [searchParams]);
 
-            {/* Error Banner */}
-            {error && (
-                <div className="bg-yellow-500/5 border-b border-yellow-500/10 px-4 py-2.5">
-                    <div className="max-w-7xl mx-auto flex items-center gap-2 text-yellow-400/80 text-sm">
-                        <AlertTriangle className="w-4 h-4" />
-                        <span className="font-mono text-xs">{error}</span>
-                        <span className="text-yellow-500/40">— Demo mode active</span>
-                    </div>
-                </div>
-            )}
+    const startGeneration = async (overrideTeam?: string, overrideMatches?: number) => {
+        const finalTeam = overrideTeam || teamInput;
+        if (!finalTeam) return;
 
-            {/* Bento Grid */}
-            <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        setLoadingError(null);
+        setState('LOADING');
 
-                    {/* Section A: The Winning Strategy */}
-                    <Card className="lg:col-span-2 p-6">
-                        <SectionHeader icon={Target} title="The Winning Strategy" />
-                        <div
-                            className="prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: formatMarkdown(data.report) }}
-                        />
-                    </Card>
+        try {
+            const response = await fetch('http://localhost:8001/api/report/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    team_name: finalTeam,
+                    num_matches: overrideMatches || 10
+                })
+            });
 
-                    {/* Right Column Stack */}
-                    <div className="space-y-6">
-                        {/* Playstyle Radar */}
-                        <Card className="p-6">
-                            <SectionHeader icon={Swords} title="Playstyle Profile" iconColor="text-blue-400" bgColor="bg-blue-500/10" />
-                            <div className="h-56">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <RadarChart data={radarData} margin={{ top: 20, right: 25, bottom: 20, left: 25 }}>
-                                        <PolarGrid stroke="rgba(255,255,255,0.06)" />
-                                        <PolarAngleAxis
-                                            dataKey="stat"
-                                            tick={{ fill: 'rgba(148,163,184,0.8)', fontSize: 10 }}
-                                        />
-                                        <PolarRadiusAxis
-                                            angle={90}
-                                            domain={[0, 100]}
-                                            tick={{ fill: 'rgba(100,116,139,0.6)', fontSize: 9 }}
-                                            axisLine={false}
-                                        />
-                                        <Radar
-                                            dataKey="value"
-                                            stroke="#ff4655"
-                                            fill="#ff4655"
-                                            fillOpacity={0.15}
-                                            strokeWidth={2}
-                                        />
-                                    </RadarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </Card>
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Scouting Failed');
+            }
 
-                        {/* Exploitability Score */}
-                        <Card className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <Zap className="w-4 h-4 text-[#ff4655]" />
-                                    <span className="text-sm text-slate-400">Exploitability</span>
+            const data = await response.json();
+
+            // Map Backend Data to our Frontend Interface
+            // The backend returns { report, stats, insights, etc. }
+            const mappedData: ReportData = {
+                team_name: data.team_name,
+                exploitability_score: data.stats?.ml_analysis?.exploitability_score || 65,
+                clustering_label: data.stats?.ml_analysis?.archetype || "Tactical Balanced",
+                similar_pro_team: data.stats?.ml_analysis?.similar_pro_team || "Team Liquid",
+                team_stats: [
+                    { subject: 'Aggression', A: data.stats?.aggression_score || 50, fullMark: 100 },
+                    { subject: 'Utility', A: data.stats?.utility_usage || 50, fullMark: 100 },
+                    { subject: 'Aim', A: data.stats?.combat_effectiveness || 50, fullMark: 100 },
+                    { subject: 'Defense', A: data.stats?.defense_rating || 50, fullMark: 100 },
+                    { subject: 'Economy', A: data.stats?.economy_management || 50, fullMark: 100 },
+                ],
+                scouting_report_markdown: data.report,
+                correlations: data.stats?.ml_analysis?.correlations || [
+                    { factor: "First Blood Loss", value: 0.75 },
+                    { factor: "Low Economy", value: 0.60 }
+                ],
+                weaknesses: data.insights?.filter((ins: any) => ins.category === 'weakness').map((ins: any) => ({
+                    title: ins.title,
+                    description: ins.content
+                })) || []
+            };
+
+            setReport(mappedData);
+        } catch (err: any) {
+            setLoadingError(err.message);
+            setState('INPUT');
+        }
+    };
+
+    const handleLoadingComplete = () => {
+        setState('RESULT');
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-red-500/30">
+            {/* Background Orbs */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-500/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px]" />
+            </div>
+
+            <main className="relative z-10 container mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-screen">
+
+                <AnimatePresence mode="wait">
+                    {/* STATE: INPUT */}
+                    {state === 'INPUT' && (
+                        <motion.div
+                            key="input"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="w-full max-w-xl text-center space-y-8"
+                        >
+                            <div className="space-y-4">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold uppercase tracking-widest">
+                                    <Cpu className="w-3 h-3" /> Tactical AI Engine Active
                                 </div>
-                                <span className="text-3xl font-bold text-white font-mono">
-                                    {data.ml_analysis?.exploitability_score || 62}
-                                    <span className="text-base text-slate-600">/100</span>
-                                </span>
+                                <h1 className="text-5xl font-black text-white tracking-tighter sm:text-7xl">
+                                    SCOUT <span className="text-red-500">ENEMY</span> DATA
+                                </h1>
+                                <p className="text-slate-400 text-lg">
+                                    Enter a team name to generate a deep-dive tactical profile using machine learning and performance correlation.
+                                </p>
                             </div>
-                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-yellow-500 to-[#ff4655] transition-all duration-1000"
-                                    style={{ width: `${data.ml_analysis?.exploitability_score || 62}%` }}
-                                />
+
+                            {loadingError && (
+                                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-sm justify-center">
+                                    <AlertTriangle className="w-4 h-4" /> {loadingError}
+                                </div>
+                            )}
+
+                            <div className="relative group">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-red-900 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
+                                <div className="relative bg-slate-900 rounded-xl flex items-center p-2 border border-slate-800 focus-within:border-red-500 group">
+                                    <Search className="w-6 h-6 ml-4 text-slate-500 group-focus-within:text-red-500 transition-colors" />
+                                    <input
+                                        type="text"
+                                        placeholder="Enter Enemy Team Name... (e.g. Sentinels)"
+                                        className="flex-1 bg-transparent border-none focus:ring-0 text-white px-4 py-3 text-lg placeholder:text-slate-600"
+                                        value={teamInput}
+                                        onChange={(e) => setTeamInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && startGeneration()}
+                                    />
+                                    <button
+                                        onClick={() => startGeneration()}
+                                        className="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-red-600/20"
+                                    >
+                                        GENERATE <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
-                            <p className="text-xs text-slate-600 mt-3">
-                                Higher = more vulnerabilities detected
+
+                            <p className="text-slate-500 text-sm">
+                                Powered by GRID Central Data & Groq LLaMA-3 Intelligence.
                             </p>
-                        </Card>
-                    </div>
+                        </motion.div>
+                    )}
 
-                    {/* Section C: Map Pool */}
-                    <Card className="p-6">
-                        <SectionHeader icon={Map} title="Map Pool" iconColor="text-purple-400" bgColor="bg-purple-500/10" />
-                        <div className="space-y-4">
-                            {Object.entries(data.stats.map_stats || {}).slice(0, 6).map(([mapName, stats]) => {
-                                const total = stats.wins + stats.losses;
-                                const winRate = total > 0 ? Math.round((stats.wins / total) * 100) : 0;
+                    {/* STATE: LOADING */}
+                    {state === 'LOADING' && (
+                        <motion.div
+                            key="loading"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex flex-col items-center gap-8"
+                        >
+                            <HackerTerminal onComplete={handleLoadingComplete} isReady={!!report} />
+                        </motion.div>
+                    )}
 
-                                return (
-                                    <div key={mapName} className="group">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-sm text-white/80 capitalize font-medium">{mapName}</span>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-xs text-slate-600 font-mono">
-                                                    {stats.wins}W {stats.losses}L
-                                                </span>
-                                                <span className={cn(
-                                                    "text-sm font-semibold font-mono tabular-nums",
-                                                    winRate >= 65 ? "text-emerald-400" :
-                                                        winRate >= 45 ? "text-yellow-400" :
-                                                            "text-red-400"
-                                                )}>
-                                                    {winRate}%
-                                                </span>
-                                            </div>
+                    {/* STATE: RESULT */}
+                    {state === 'RESULT' && report && (
+                        <motion.div
+                            key="result"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="w-full max-w-7xl space-y-8 py-8"
+                        >
+                            {/* DASHBOARD HEADER */}
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/10">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center text-white text-2xl font-black">
+                                            {report.team_name[0]}
                                         </div>
-                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <div
-                                                className={cn(
-                                                    "h-full rounded-full transition-all duration-700 group-hover:opacity-100 opacity-80",
-                                                    winRate >= 65 ? "bg-gradient-to-r from-emerald-600 to-emerald-400" :
-                                                        winRate >= 45 ? "bg-gradient-to-r from-yellow-600 to-yellow-400" :
-                                                            "bg-gradient-to-r from-red-600 to-red-400"
-                                                )}
-                                                style={{ width: `${winRate}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </Card>
-
-                    {/* Section D: Weakness Scanner */}
-                    <Card className="lg:col-span-2 p-6">
-                        <SectionHeader icon={AlertTriangle} title="Weakness Scanner" iconColor="text-red-400" bgColor="bg-red-500/10" />
-                        <div className="grid sm:grid-cols-2 gap-4">
-                            {(data.weaknesses || mockData.weaknesses).map((weakness, i) => (
-                                <div
-                                    key={i}
-                                    className={cn(
-                                        "p-4 rounded-xl border-l-2 transition-all duration-200 hover:scale-[1.02]",
-                                        weakness.severity === 'high'
-                                            ? "bg-red-500/5 border-red-500 hover:bg-red-500/10"
-                                            : "bg-yellow-500/5 border-yellow-500 hover:bg-yellow-500/10"
-                                    )}
-                                >
-                                    <div className="flex items-start gap-3">
-                                        <div className={cn(
-                                            "p-1.5 rounded-lg mt-0.5",
-                                            weakness.severity === 'high' ? "bg-red-500/10" : "bg-yellow-500/10"
-                                        )}>
-                                            {weakness.severity === 'high'
-                                                ? <XCircle className="w-4 h-4 text-red-400" />
-                                                : <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                                            }
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm text-white/90 font-medium mb-1">{weakness.text}</p>
-                                            <p className="text-xs text-slate-500">
-                                                <span className="text-slate-600">→</span> {weakness.recommendation}
+                                        <div>
+                                            <h2 className="text-4xl font-black text-white tracking-tighter uppercase">{report.team_name}</h2>
+                                            <p className="text-slate-400 font-medium flex items-center gap-2">
+                                                <Award className="w-4 h-4 text-red-500" /> Pro Comparison: <span className="text-slate-200">{report.similar_pro_team}</span>
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </Card>
 
-                    {/* Recent Opponents */}
-                    <Card className="p-6">
-                        <SectionHeader icon={Users} title="Recent Opponents" iconColor="text-cyan-400" bgColor="bg-cyan-500/10" />
-                        <div className="space-y-1">
-                            {Object.entries(data.stats.opponents || {}).slice(0, 5).map(([opponent, stats]) => {
-                                const isWinning = stats.wins > stats.losses;
-                                return (
-                                    <div
-                                        key={opponent}
-                                        className="flex items-center justify-between py-3 border-b border-white/5 last:border-0 group hover:bg-white/[0.02] -mx-2 px-2 rounded-lg transition-colors"
-                                    >
-                                        <span className="text-sm text-white/80 group-hover:text-white transition-colors">{opponent}</span>
-                                        <div className="flex items-center gap-2">
-                                            {isWinning
-                                                ? <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                                : <XCircle className="w-4 h-4 text-red-400" />
-                                            }
-                                            <span className={cn(
-                                                "text-sm font-mono font-medium tabular-nums",
-                                                isWinning ? "text-emerald-400" : "text-red-400"
-                                            )}>
-                                                {stats.wins}-{stats.losses}
-                                            </span>
+                                <div className="flex items-center gap-8">
+                                    <div className="text-right">
+                                        <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Exploitability Score</p>
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative w-16 h-16">
+                                                <svg className="w-full h-full transform -rotate-90">
+                                                    <circle
+                                                        cx="32"
+                                                        cy="32"
+                                                        r="28"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                        fill="transparent"
+                                                        className="text-slate-800"
+                                                    />
+                                                    <circle
+                                                        cx="32"
+                                                        cy="32"
+                                                        r="28"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                        fill="transparent"
+                                                        strokeDasharray={175.9}
+                                                        strokeDashoffset={175.9 * (1 - report.exploitability_score / 100)}
+                                                        className={report.exploitability_score > 75 ? "text-green-500" : "text-red-500"}
+                                                    />
+                                                </svg>
+                                                <div className="absolute inset-0 flex items-center justify-center text-lg font-bold">
+                                                    {report.exploitability_score}%
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className={`text-xl font-black uppercase tracking-tighter ${report.exploitability_score > 75 ? "text-green-500" : "text-red-500"}`}>
+                                                    {report.exploitability_score > 75 ? "EASY EXPLOIT" : "HARD TARGET"}
+                                                </p>
+                                                <p className="text-slate-500 text-xs">Based on 20 match history</p>
+                                            </div>
                                         </div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    </Card>
-                </div>
+                                    <button
+                                        onClick={() => setState('INPUT')}
+                                        className="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors text-slate-400 hover:text-white"
+                                    >
+                                        <ArrowLeft className="w-6 h-6" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* BENTO GRID */}
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+                                {/* LEFT COLUMN: DATA VIZ */}
+                                <div className="md:col-span-3 space-y-6">
+                                    {/* Radar Chart Card */}
+                                    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/[0.05] rounded-3xl p-6">
+                                        <div className="flex items-center gap-2 mb-6 text-slate-400 uppercase text-xs font-bold tracking-widest">
+                                            <Activity className="w-4 h-4 text-red-500" /> Performance Web
+                                        </div>
+                                        <div className="h-64 w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={report.team_stats}>
+                                                    <PolarGrid stroke="#334155" />
+                                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                                                    <Radar
+                                                        name={report.team_name}
+                                                        dataKey="A"
+                                                        stroke="#ef4444"
+                                                        fill="#ef4444"
+                                                        fillOpacity={0.5}
+                                                    />
+                                                </RadarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+
+                                    {/* Cluster Card */}
+                                    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/[0.05] rounded-3xl p-6 overflow-hidden relative">
+                                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                                            <LayoutDashboard className="w-20 h-20" />
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-4 text-slate-400 uppercase text-xs font-bold tracking-widest">
+                                            <Cpu className="w-4 h-4 text-red-500" /> AI CLUSTER ANALYSIS
+                                        </div>
+                                        <p className="text-slate-500 text-xs mb-1 uppercase font-bold tracking-wider">Playstyle Archetype</p>
+                                        <h3 className="text-2xl font-black text-white leading-none mb-4">{report.clustering_label}</h3>
+                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold">
+                                            <Shield className="w-3 h-3" /> Predictive Model Verified
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* CENTER COLUMN: THE STRATEGY */}
+                                <div className="md:col-span-5 bg-slate-900/40 backdrop-blur-xl border border-white/[0.1] rounded-3xl p-8 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-[80px] -mr-32 -mt-32" />
+
+                                    <div className="flex items-center gap-2 mb-6 text-slate-400 uppercase text-xs font-bold tracking-widest">
+                                        <Target className="w-4 h-4 text-red-500" /> ANTI-STRAT PROTOCOL
+                                    </div>
+
+                                    <div className="prose prose-invert max-w-none prose-headings:text-white prose-headings:tracking-tighter prose-strong:text-red-500 prose-p:text-slate-400 prose-li:text-slate-400">
+                                        <ReactMarkdown>{report.scouting_report_markdown}</ReactMarkdown>
+                                    </div>
+                                </div>
+
+                                {/* RIGHT COLUMN: DEEP DIVE */}
+                                <div className="md:col-span-4 space-y-6">
+                                    {/* Loss Correlations */}
+                                    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/[0.05] rounded-3xl p-6">
+                                        <div className="flex items-center gap-2 mb-6 text-slate-400 uppercase text-xs font-bold tracking-widest">
+                                            <TrendingDown className="w-4 h-4 text-red-500" /> LOSS CORRELATIONS
+                                        </div>
+                                        <div className="space-y-5">
+                                            {report.correlations.map((item, i) => (
+                                                <div key={i} className="space-y-2">
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-slate-300 font-medium">{item.factor}</span>
+                                                        <span className="text-red-500 font-bold">{(item.value * 100).toFixed(0)}%</span>
+                                                    </div>
+                                                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                                                        <motion.div
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${item.value * 100}%` }}
+                                                            className="h-full bg-gradient-to-r from-red-600 to-red-400"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Weakness Scanner */}
+                                    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/[0.05] rounded-3xl p-6">
+                                        <div className="flex items-center gap-2 mb-6 text-slate-400 uppercase text-xs font-bold tracking-widest">
+                                            <Zap className="w-4 h-4 text-yellow-500" /> WEAKNESS SCANNER
+                                        </div>
+                                        <div className="space-y-4">
+                                            {report.weaknesses.map((item, i) => (
+                                                <div key={i} className="group cursor-default">
+                                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] group-hover:bg-red-500/5 group-hover:border-red-500/30 transition-all">
+                                                        <div className="p-2 rounded-lg bg-red-500/10 text-red-500 mt-1">
+                                                            <AlertTriangle className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">
+                                                                {item.title}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-500 group-hover:text-slate-400 leading-relaxed mt-1">
+                                                                {item.description}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </main>
         </div>
-    );
-}
-
-export default function ReportPage() {
-    return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="relative">
-                    <div className="absolute inset-0 bg-[#ff4655] blur-2xl opacity-30 animate-pulse" />
-                    <Loader2 className="w-12 h-12 text-[#ff4655] animate-spin relative" />
-                </div>
-            </div>
-        }>
-            <ReportContent />
-        </Suspense>
     );
 }

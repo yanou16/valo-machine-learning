@@ -3,7 +3,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 from clients.grid_client import GridClient
-from clients.file_download import FileDownloadClient
 from services.data_service import DataService
 
 
@@ -91,14 +90,9 @@ async def get_series_details(series_id: str):
 @router.get("/series/{series_id}/files")
 async def list_series_files(series_id: str):
     """
-    List available gameplay files for a series.
+    List available gameplay files for a series. (Disabled)
     """
-    client = FileDownloadClient()
-    try:
-        files = await client.list_files(series_id)
-        return {"files": files, "count": len(files)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return {"files": [], "count": 0, "message": "File downloads are currently disabled."}
 
 
 @router.post("/ingest")
