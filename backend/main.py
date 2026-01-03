@@ -5,6 +5,7 @@ from config import get_settings
 from routers.data_router import router as data_router
 from routers.analysis_router import router as analysis_router
 from routers.report_router import router as report_router
+from routers.chat_router import router as chat_router
 
 settings = get_settings()
 
@@ -27,6 +28,7 @@ app.add_middleware(
 app.include_router(data_router)
 app.include_router(analysis_router)
 app.include_router(report_router)
+app.include_router(chat_router)
 
 
 @app.get("/health")

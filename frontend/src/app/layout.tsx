@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ReportProvider } from "@/context/ReportContext";
+import ChatWidget from "@/components/ChatWidget";
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: '--font-inter'
 });
@@ -21,7 +23,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        {children}
+        <ReportProvider>
+          {children}
+          <ChatWidget />
+        </ReportProvider>
       </body>
     </html>
   );

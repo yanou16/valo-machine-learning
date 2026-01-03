@@ -35,6 +35,7 @@ import {
     Cell
 } from 'recharts';
 import ReactMarkdown from 'react-markdown';
+import { useReport } from '@/context/ReportContext';
 
 // --- Types ---
 
@@ -195,6 +196,7 @@ function ReportPage() {
 
     const [loadingError, setLoadingError] = useState<string | null>(null);
     const searchParams = useSearchParams();
+    const { setReportData } = useReport();
 
     useEffect(() => {
         const team = searchParams.get('team');
@@ -255,6 +257,15 @@ function ReportPage() {
             };
 
             setReport(mappedData);
+
+            // Store in context for ChatWidget
+            setReportData({
+                team_name: data.team_name,
+                matches_analyzed: data.matches_analyzed,
+                report: data.report,
+                stats: data.stats,
+                insights: data.insights
+            });
         } catch (err: any) {
             setLoadingError(err.message);
             setState('INPUT');
