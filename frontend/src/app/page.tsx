@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -21,6 +21,8 @@ import {
 import Image from 'next/image';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import TeamSelectionWindow from '@/components/TeamSelectionWindow';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -43,7 +45,13 @@ export default function Home() {
   const [showTeamASelector, setShowTeamASelector] = useState(false);
   const [showTeamBSelector, setShowTeamBSelector] = useState(false);
 
+  // Refs for Portal positioning
+  const scoutingSelectorRef = useRef<HTMLButtonElement>(null);
+  const teamASelectorRef = useRef<HTMLButtonElement>(null);
+  const teamBSelectorRef = useRef<HTMLButtonElement>(null);
+
   const popularTeams = [
+    // Americas
     { name: 'Sentinels', region: 'Americas' },
     { name: 'Cloud9', region: 'Americas' },
     { name: 'LOUD', region: 'Americas' },
@@ -51,8 +59,39 @@ export default function Home() {
     { name: 'NRG', region: 'Americas' },
     { name: 'Evil Geniuses', region: 'Americas' },
     { name: 'Leviatan', region: 'Americas' },
+    { name: 'FURIA', region: 'Americas' },
+    { name: 'KRU Esports', region: 'Americas' },
+    { name: 'MIBR', region: 'Americas' },
+    // Pacific
     { name: 'Paper Rex', region: 'Pacific' },
+    { name: 'DRX', region: 'Pacific' },
+    { name: 'T1', region: 'Pacific' },
+    { name: 'Gen.G', region: 'Pacific' },
+    { name: 'ZETA DIVISION', region: 'Pacific' },
+    { name: 'DetonatioN FocusMe', region: 'Pacific' },
+    { name: 'Team Secret', region: 'Pacific' },
+    { name: 'Talon Esports', region: 'Pacific' },
+    { name: 'Global Esports', region: 'Pacific' },
+    { name: 'Rex Regum Qeon', region: 'Pacific' },
+    // EMEA
+    { name: 'Fnatic', region: 'EMEA' },
+    { name: 'Team Vitality', region: 'EMEA' },
+    { name: 'Team Liquid', region: 'EMEA' },
+    { name: 'Karmine Corp', region: 'EMEA' },
+    { name: 'NAVI', region: 'EMEA' },
+    { name: 'FUT Esports', region: 'EMEA' },
+    { name: 'Giants Gaming', region: 'EMEA' },
+    { name: 'BBL Esports', region: 'EMEA' },
+    { name: 'Team Heretics', region: 'EMEA' },
+    { name: 'KOI', region: 'EMEA' },
+    // China
+    { name: 'EDward Gaming', region: 'China' },
+    { name: 'Bilibili Gaming', region: 'China' },
+    { name: 'FunPlus Phoenix', region: 'China' },
+    { name: 'JD Gaming', region: 'China' },
+    { name: 'All Gamers', region: 'China' },
   ];
+
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -108,31 +147,39 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-slate-950 relative overflow-x-hidden transition-colors duration-300">
       {/* ============ BACKGROUND PHYSICS ============ */}
 
-      {/* Grid Pattern */}
+      {/* Dot Grid Pattern for Light Mode */}
       <div
-        className="fixed inset-0 opacity-[0.015]"
+        className="fixed inset-0 opacity-[0.4] dark:opacity-0"
+        style={{
+          backgroundImage: `radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px)`,
+          backgroundSize: '24px 24px'
+        }}
+      />
+      {/* Grid Pattern for Dark Mode */}
+      <div
+        className="fixed inset-0 opacity-0 dark:opacity-[0.015]"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
           backgroundSize: '80px 80px'
         }}
       />
 
-      {/* Radial Spotlight from Top */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-30%,rgba(120,119,198,0.2),transparent)]" />
+      {/* Radial Spotlight - Light mode: subtle warm, Dark mode: purple glow */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-30%,rgba(255,70,85,0.05),transparent)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_-30%,rgba(120,119,198,0.2),transparent)]" />
 
-      {/* Blurred Orbs */}
-      <div className="fixed top-20 left-1/4 w-[500px] h-[500px] bg-[#ff4655]/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '4s' }} />
-      <div className="fixed top-40 right-1/4 w-[600px] h-[600px] bg-indigo-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+      {/* Blurred Orbs - Hidden in light mode, visible in dark */}
+      <div className="fixed top-20 left-1/4 w-[500px] h-[500px] bg-[#ff4655]/20 rounded-full blur-[120px] animate-pulse opacity-0 dark:opacity-100" style={{ animationDuration: '4s' }} />
+      <div className="fixed top-40 right-1/4 w-[600px] h-[600px] bg-indigo-500/20 rounded-full blur-[120px] animate-pulse opacity-0 dark:opacity-100" style={{ animationDuration: '6s', animationDelay: '1s' }} />
 
 
       {/* ============ SECTION 1: NAVBAR ============ */}
       <nav className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
-          ? "bg-slate-950/80 backdrop-blur-xl border-b border-white/[0.05]"
+          ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/[0.05]"
           : "bg-transparent"
       )}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -145,7 +192,7 @@ export default function Home() {
                   <Crosshair className="w-5 h-5 text-white" />
                 </div>
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">VALOML</span>
+              <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">VALOML</span>
             </div>
 
             {/* Desktop Nav */}
@@ -160,10 +207,11 @@ export default function Home() {
 
             {/* CTA */}
             <div className="hidden md:flex items-center gap-4">
-              <button className="px-4 py-2 text-sm text-slate-300 hover:text-white transition-colors">
+              <ThemeToggle />
+              <button className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">
                 Sign In
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-lg transition-all">
+              <button className="px-4 py-2 text-sm font-medium text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 hover:border-slate-300 dark:text-white dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:hover:border-white/20 rounded-lg transition-all">
                 Get Started
               </button>
             </div>
@@ -194,376 +242,395 @@ export default function Home() {
       </nav>
 
 
-      {/* ============ SECTION 2: THE HERO ============ */}
-      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 pt-20 overflow-hidden">
 
-        {/* Phantom Character Watermark */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="relative w-[600px] h-[800px] sm:w-[800px] sm:h-[1000px]">
+      {/* ============ SECTION 2: THE HERO ============ */}
+      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 pt-20">
+
+        {/* === AGGRESSIVE BACKGROUND EFFECTS === */}
+
+        {/* Tech Grid Overlay */}
+        <div
+          className="absolute inset-0 opacity-20 dark:opacity-30"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,70,85,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,70,85,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px'
+          }}
+        />
+
+        {/* Diagonal Accent Lines - Top Right */}
+        <div className="absolute top-0 right-0 w-[600px] h-[400px] overflow-hidden pointer-events-none">
+          <div className="absolute top-20 right-[-100px] w-[500px] h-[3px] bg-gradient-to-r from-transparent via-[#ff4655] to-[#ff4655] rotate-[-35deg]" />
+          <div className="absolute top-32 right-[-80px] w-[400px] h-[2px] bg-gradient-to-r from-transparent via-[#ff4655]/60 to-[#ff4655]/60 rotate-[-35deg]" />
+          <div className="absolute top-44 right-[-60px] w-[300px] h-[1px] bg-gradient-to-r from-transparent to-[#ff4655]/40 rotate-[-35deg]" />
+        </div>
+
+        {/* Diagonal Accent Lines - Bottom Left */}
+        <div className="absolute bottom-0 left-0 w-[600px] h-[400px] overflow-hidden pointer-events-none">
+          <div className="absolute bottom-32 left-[-100px] w-[500px] h-[3px] bg-gradient-to-l from-transparent via-[#ff4655] to-[#ff4655] rotate-[-35deg]" />
+          <div className="absolute bottom-44 left-[-80px] w-[400px] h-[2px] bg-gradient-to-l from-transparent via-[#ff4655]/60 to-[#ff4655]/60 rotate-[-35deg]" />
+        </div>
+
+        {/* Omen Character Watermark */}
+        <div className="absolute inset-0 flex items-center justify-end pointer-events-none">
+          <div className="relative w-[500px] h-[700px] sm:w-[700px] sm:h-[900px] mr-[-100px]">
             <Image
               src="/phantom-character.png"
               alt=""
               fill
-              className="object-contain grayscale opacity-[0.08] mix-blend-overlay blur-[1px] scale-110"
+              className="object-contain opacity-20 dark:opacity-40 mix-blend-luminosity"
               priority
             />
-            {/* Vertical Fade Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-950" />
+            {/* Gradient fade */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-slate-950 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-slate-950 via-transparent to-transparent" />
           </div>
         </div>
 
+        {/* HUD Corner Brackets */}
+        <div className="absolute top-24 left-8 w-16 h-16 border-l-2 border-t-2 border-[#ff4655]/50" />
+        <div className="absolute top-24 right-8 w-16 h-16 border-r-2 border-t-2 border-[#ff4655]/50" />
+        <div className="absolute bottom-24 left-8 w-16 h-16 border-l-2 border-b-2 border-[#ff4655]/50" />
+        <div className="absolute bottom-24 right-8 w-16 h-16 border-r-2 border-b-2 border-[#ff4655]/50" />
+
+        {/* Main Content */}
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full mb-8">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-slate-400 font-medium">Powered by GRID Esports Data</span>
+
+          {/* Status Badge - Military Style */}
+          <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-900/80 dark:bg-slate-900/90 border border-[#ff4655]/30 mb-8"
+            style={{ clipPath: 'polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)' }}>
+            <div className="w-2 h-2 bg-emerald-400 animate-pulse" />
+            <span className="text-xs text-slate-400 font-mono uppercase tracking-[0.2em]">System Online</span>
+            <div className="w-px h-4 bg-slate-700" />
+            <span className="text-xs text-[#ff4655] font-mono uppercase tracking-wider">GRID Connected</span>
           </div>
 
-          {/* Hero Title */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-slate-400">
+          {/* Hero Title - VICTORY IS */}
+          <h1 className="relative mb-2">
+            <span className="block text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white dark:text-white/90"
+              style={{ fontFamily: 'system-ui, -apple-system, sans-serif', letterSpacing: '-0.02em' }}>
               VICTORY IS
-            </span>
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff4655] via-[#ff6b77] to-[#ff8f97]">
-              CALCULATED
             </span>
           </h1>
 
-          {/* Subtitle */}
-          <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-            The AI-powered analyst for <span className="text-white">Tier 1 & Tier 2</span> esports teams.
-            Instant scouting reports. Exploitable weaknesses. Winning strategies.
+          {/* CALCULATED - With Glitch Effect */}
+          <div className="relative mb-8">
+            {/* Ghost/Glitch Layer - Cyan offset */}
+            <span
+              className="absolute inset-0 text-7xl sm:text-8xl md:text-9xl font-black tracking-tighter text-cyan-500/30 select-none"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                transform: 'translate(3px, 3px)',
+                letterSpacing: '-0.04em'
+              }}
+              aria-hidden="true"
+            >
+              CALCULATED.
+            </span>
+            {/* Ghost/Glitch Layer - Red offset */}
+            <span
+              className="absolute inset-0 text-7xl sm:text-8xl md:text-9xl font-black tracking-tighter text-[#ff4655]/20 select-none"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                transform: 'translate(-2px, -2px)',
+                letterSpacing: '-0.04em'
+              }}
+              aria-hidden="true"
+            >
+              CALCULATED.
+            </span>
+            {/* Main Text */}
+            <span
+              className="relative block text-7xl sm:text-8xl md:text-9xl font-black tracking-tighter text-[#ff4655]"
+              style={{
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                letterSpacing: '-0.04em',
+                textShadow: '0 0 40px rgba(255,70,85,0.4), 0 0 80px rgba(255,70,85,0.2)'
+              }}
+            >
+              CALCULATED.
+            </span>
+          </div>
+
+          {/* Subtitle - Military Briefing Style */}
+          <p className="text-base sm:text-lg text-slate-400 max-w-xl mx-auto mb-12 font-mono leading-relaxed">
+            <span className="text-[#ff4655]">//</span> AI-powered tactical analysis for{' '}
+            <span className="text-white font-semibold">Tier 1 & Tier 2</span> esports teams.
+            <br />
+            <span className="text-[#ff4655]">//</span> Instant scouting reports. Exploitable weaknesses.
           </p>
 
-          {/* ============ DUAL MODE SEARCH ============ */}
-          <div className="w-full max-w-2xl mx-auto">
-            {/* Mode Switcher Tabs */}
-            <div className="flex justify-center mb-4">
-              <div className="inline-flex p-1 bg-white/5 border border-white/10 rounded-full">
-                <button
-                  onClick={() => setSearchMode('scouting')}
-                  className={cn(
-                    "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                    searchMode === 'scouting'
-                      ? "bg-white text-slate-900 shadow-lg"
-                      : "text-slate-400 hover:text-white"
-                  )}
-                >
-                  🕵️ Scouting Report
-                </button>
-                <button
-                  onClick={() => setSearchMode('versus')}
-                  className={cn(
-                    "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                    searchMode === 'versus'
-                      ? "bg-white text-slate-900 shadow-lg"
-                      : "text-slate-400 hover:text-white"
-                  )}
-                >
-                  ⚔️ Match Prediction
-                </button>
-              </div>
+          {/* ============ HUD SEARCH BAR ============ */}
+          <div className="w-full max-w-3xl mx-auto">
+
+            {/* Tactical Mode Switcher Tabs - Attached to top-left */}
+            <div className="flex items-end mb-[-2px] ml-3 relative z-10">
+              {/* SCOUTING Tab */}
+              <button
+                onClick={() => setSearchMode('scouting')}
+                className={cn(
+                  "relative px-6 py-2 text-xs font-mono uppercase tracking-wider transition-all duration-200",
+                  searchMode === 'scouting'
+                    ? "bg-[#ff4655] text-white"
+                    : "bg-transparent text-slate-500 hover:text-white border-t border-l border-r border-slate-700/50 hover:border-[#ff4655]/50"
+                )}
+                style={{
+                  clipPath: 'polygon(0 0, 100% 0, 90% 100%, 0% 100%)',
+                  marginRight: '-8px'
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-[10px]">🎯</span>
+                  SCOUTING
+                </span>
+              </button>
+
+              {/* VERSUS Tab */}
+              <button
+                onClick={() => setSearchMode('versus')}
+                className={cn(
+                  "relative px-6 py-2 text-xs font-mono uppercase tracking-wider transition-all duration-200",
+                  searchMode === 'versus'
+                    ? "bg-[#ff4655] text-white"
+                    : "bg-transparent text-slate-500 hover:text-white border-t border-l border-r border-slate-700/50 hover:border-[#ff4655]/50"
+                )}
+                style={{
+                  clipPath: 'polygon(10% 0, 100% 0, 90% 100%, 0% 100%)',
+                }}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-[10px]">⚔️</span>
+                  VERSUS
+                </span>
+              </button>
             </div>
 
-            {/* Search Container */}
-            <div
-              className={cn(
-                "relative transition-all duration-300",
-                isFocused && "scale-[1.02]"
-              )}
-            >
-              {/* Glow Effect */}
-              <div className={cn(
-                "absolute -inset-1 bg-gradient-to-r from-[#ff4655]/30 via-purple-500/20 to-[#ff4655]/30 rounded-2xl blur-xl transition-opacity duration-500",
-                isFocused ? "opacity-100" : "opacity-0"
-              )} />
+            {/* The Angular HUD Container - Refactored for Dropdown Visibility */}
+            <div className="relative group/hud">
+              {/* background/border layer (the one with clip-path) */}
+              <div
+                className="absolute inset-0 p-[2px] bg-gradient-to-r from-[#ff4655] via-slate-700 to-slate-800 transition-all duration-300 group-focus-within/hud:from-[#ff4655] group-focus-within/hud:via-[#ff4655]/40"
+                style={{
+                  clipPath: 'polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)',
+                  zIndex: 0
+                }}
+              >
+                <div
+                  className="w-full h-full bg-slate-900/95 backdrop-blur-xl"
+                  style={{ clipPath: 'polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px)' }}
+                />
+              </div>
 
-              {/* ========== SCOUTING MODE ========== */}
-              {searchMode === 'scouting' && (
-                <div className={cn(
-                  "relative h-16 bg-white/5 backdrop-blur-xl rounded-2xl border transition-all duration-300 flex items-center",
-                  isFocused
-                    ? "border-[#ff4655]/40 ring-2 ring-[#ff4655]/20"
-                    : "border-white/10 hover:border-white/20"
-                )}>
-                  {/* Quick Team Selector */}
-                  <div className="relative pl-2">
+              {/* Functional Content Layer (no clip-path here to allow dropdowns to overflow) */}
+              <div className="relative z-10 flex items-center h-16 pointer-events-auto">
+                {/* ========== SCOUTING MODE ========== */}
+                {searchMode === 'scouting' && (
+                  <>
+                    {/* Team Selector */}
+                    <div className="relative">
+                      <button
+                        ref={scoutingSelectorRef}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowTeamSelector(!showTeamSelector);
+                        }}
+                        className="flex items-center gap-2 h-16 px-5 border-r border-slate-700/50 text-sm font-mono uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        <Shield className="w-4 h-4 text-[#ff4655]" />
+                        <span>Select</span>
+                        <ChevronDown className={cn("w-4 h-4 transition-transform", showTeamSelector && "rotate-180")} />
+                      </button>
+
+                      <TeamSelectionWindow
+                        isOpen={showTeamSelector}
+                        onClose={() => setShowTeamSelector(false)}
+                        onSelect={(name) => setTeamName(name)}
+                        teams={popularTeams}
+                        triggerRef={scoutingSelectorRef}
+                        variant="scouting"
+                        title="TARGET SELECTION"
+                      />
+                    </div>
+
+                    {/* Search Input */}
+                    <div className="flex-1 flex items-center gap-3 px-4">
+                      <Search className="w-5 h-5 text-slate-500" />
+                      <input
+                        type="text"
+                        value={teamName}
+                        onChange={(e) => setTeamName(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Enter team name..."
+                        className="flex-1 bg-transparent text-white text-lg font-mono placeholder:text-slate-600 focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Generate Button */}
                     <button
-                      onClick={() => setShowTeamSelector(!showTeamSelector)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
+                      onClick={handleGenerate}
+                      disabled={!teamName.trim()}
+                      className={cn(
+                        "relative h-full px-8 font-bold text-sm uppercase tracking-wider transition-all duration-200 flex items-center gap-2 overflow-hidden",
+                        teamName.trim()
+                          ? "bg-[#ff4655] text-white hover:bg-[#ff5a67]"
+                          : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                      )}
+                      style={{
+                        clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px)',
+                        transform: 'skewX(-5deg)',
+                        marginRight: '2px'
+                      }}
                     >
-                      <Shield className="w-4 h-4 text-[#ff4655]" />
-                      <ChevronDown className="w-3 h-3 text-slate-500" />
+                      <span style={{ transform: 'skewX(5deg)' }} className="flex items-center gap-2">
+                        Generate
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
                     </button>
+                  </>
+                )}
 
-                    {showTeamSelector && (
-                      <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
-                        <div className="px-3 py-2 border-b border-white/10">
-                          <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">Popular Teams</span>
-                        </div>
-                        {popularTeams.map((team) => (
-                          <button
-                            key={team.name}
-                            onClick={() => {
-                              setTeamName(team.name);
-                              setShowTeamSelector(false);
-                            }}
-                            className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between group"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-slate-500 group-hover:text-[#ff4655] transition-colors" />
-                              <span className="text-slate-300 group-hover:text-white transition-colors">{team.name}</span>
-                            </div>
-                            <span className="text-xs text-slate-600">{team.region}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {/* ========== VERSUS MODE ========== */}
+                {searchMode === 'versus' && (
+                  <>
+                    {/* Team A Selector + Input */}
+                    <div className="relative flex items-center">
+                      <button
+                        ref={teamASelectorRef}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowTeamASelector(!showTeamASelector);
+                          setShowTeamBSelector(false);
+                        }}
+                        className="flex items-center gap-2 h-16 px-4 border-r border-slate-700/50 text-sm font-mono uppercase tracking-wider text-emerald-400 hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        <Shield className="w-4 h-4" />
+                        <ChevronDown className={cn("w-3 h-3 transition-transform", showTeamASelector && "rotate-180")} />
+                      </button>
 
-                  <div className="h-6 w-px bg-white/10 mx-2" />
+                      <TeamSelectionWindow
+                        isOpen={showTeamASelector}
+                        onClose={() => setShowTeamASelector(false)}
+                        onSelect={(name) => setTeamA(name)}
+                        teams={popularTeams}
+                        triggerRef={teamASelectorRef}
+                        variant="teamA"
+                        title="YOUR TEAM"
+                      />
+                    </div>
 
-                  <div className="pl-1">
-                    <Search className={cn(
-                      "w-5 h-5 transition-colors",
-                      isFocused ? "text-[#ff4655]" : "text-slate-500"
-                    )} />
-                  </div>
-
-                  <input
-                    type="text"
-                    value={teamName}
-                    onChange={(e) => setTeamName(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    placeholder="Search team..."
-                    className="flex-1 h-full px-4 bg-transparent text-white text-lg placeholder:text-slate-500 focus:outline-none"
-                  />
-
-                  <div className="relative mr-3">
-                    <button
-                      onClick={() => setShowDropdown(!showDropdown)}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
-                    >
-                      <span className="text-slate-500">Matches:</span>
-                      <span className="font-mono font-semibold text-white">{matchCount}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
-                    </button>
-
-                    {showDropdown && (
-                      <div className="absolute top-full right-0 mt-2 w-36 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
-                        {[5, 10, 15, 20].map((count) => (
-                          <button
-                            key={count}
-                            onClick={() => { setMatchCount(count); setShowDropdown(false); }}
-                            className={cn(
-                              "w-full px-4 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between",
-                              matchCount === count ? "text-[#ff4655] bg-[#ff4655]/10" : "text-slate-300"
-                            )}
-                          >
-                            {count} matches
-                            {matchCount === count && <Sparkles className="w-3 h-3" />}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={handleGenerate}
-                    disabled={!teamName.trim()}
-                    className={cn(
-                      "h-12 px-6 mr-2 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2",
-                      teamName.trim()
-                        ? "bg-gradient-to-r from-[#ff4655] to-[#ff5a67] text-white hover:shadow-lg hover:shadow-[#ff4655]/30 hover:scale-105"
-                        : "bg-slate-800 text-slate-500 cursor-not-allowed"
-                    )}
-                  >
-                    Generate
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {/* ========== VERSUS MODE ========== */}
-              {searchMode === 'versus' && (
-                <div className={cn(
-                  "relative bg-white/5 backdrop-blur-xl rounded-2xl border transition-all duration-300 p-4",
-                  isFocused
-                    ? "border-[#ff4655]/40 ring-2 ring-[#ff4655]/20"
-                    : "border-white/10 hover:border-white/20"
-                )}>
-                  <div className="flex flex-col md:flex-row items-center gap-4">
                     {/* Team A Input */}
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Your Team</label>
-                      <div className="relative flex items-center h-12 bg-white/5 rounded-xl border border-white/10">
-                        <div className="relative pl-2">
-                          <button
-                            onClick={() => setShowTeamASelector(!showTeamASelector)}
-                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
-                          >
-                            <Shield className="w-4 h-4 text-emerald-400" />
-                            <ChevronDown className="w-3 h-3 text-slate-500" />
-                          </button>
-
-                          {showTeamASelector && (
-                            <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
-                              <div className="px-3 py-2 border-b border-white/10">
-                                <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">Popular Teams</span>
-                              </div>
-                              {popularTeams.map((team) => (
-                                <button
-                                  key={team.name}
-                                  onClick={() => {
-                                    setTeamA(team.name);
-                                    setShowTeamASelector(false);
-                                  }}
-                                  className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between group"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
-                                    <span className="text-slate-300 group-hover:text-white transition-colors">{team.name}</span>
-                                  </div>
-                                  <span className="text-xs text-slate-600">{team.region}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <input
-                          type="text"
-                          value={teamA}
-                          onChange={(e) => setTeamA(e.target.value)}
-                          onFocus={() => setIsFocused(true)}
-                          onBlur={() => setIsFocused(false)}
-                          placeholder="Enter team..."
-                          className="flex-1 h-full px-3 bg-transparent text-white placeholder:text-slate-500 focus:outline-none"
-                        />
-                      </div>
+                    <div className="flex-1 flex items-center gap-2 px-3 border-r border-slate-700/50">
+                      <input
+                        type="text"
+                        value={teamA}
+                        onChange={(e) => setTeamA(e.target.value)}
+                        placeholder="Your team..."
+                        className="flex-1 bg-transparent text-white font-mono placeholder:text-slate-600 focus:outline-none text-sm"
+                      />
                     </div>
 
                     {/* VS Badge */}
-                    <div className="relative flex-shrink-0">
-                      <div className="absolute inset-0 bg-[#ff4655] blur-xl opacity-40 rounded-full" />
-                      <div className="relative w-12 h-12 bg-slate-900 border-2 border-[#ff4655] rounded-full flex items-center justify-center">
-                        <span className="text-[#ff4655] font-black text-sm">VS</span>
+                    <div className="px-3 flex items-center justify-center">
+                      <div className="w-8 h-8 bg-slate-800 border border-[#ff4655]/50 flex items-center justify-center"
+                        style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}>
+                        <span className="text-[#ff4655] font-black text-[10px]">VS</span>
                       </div>
                     </div>
 
                     {/* Team B Input */}
-                    <div className="flex-1 w-full">
-                      <label className="block text-xs text-slate-500 uppercase tracking-wider mb-2 font-medium">Opponent</label>
-                      <div className="relative flex items-center h-12 bg-white/5 rounded-xl border border-white/10">
-                        <div className="relative pl-2">
-                          <button
-                            onClick={() => setShowTeamBSelector(!showTeamBSelector)}
-                            className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition-all"
-                          >
-                            <Shield className="w-4 h-4 text-[#ff4655]" />
-                            <ChevronDown className="w-3 h-3 text-slate-500" />
-                          </button>
-
-                          {showTeamBSelector && (
-                            <div className="absolute top-full left-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
-                              <div className="px-3 py-2 border-b border-white/10">
-                                <span className="text-xs text-slate-500 uppercase tracking-wider font-medium">Popular Teams</span>
-                              </div>
-                              {popularTeams.map((team) => (
-                                <button
-                                  key={team.name}
-                                  onClick={() => {
-                                    setTeamB(team.name);
-                                    setShowTeamBSelector(false);
-                                  }}
-                                  className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between group"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Users className="w-4 h-4 text-slate-500 group-hover:text-[#ff4655] transition-colors" />
-                                    <span className="text-slate-300 group-hover:text-white transition-colors">{team.name}</span>
-                                  </div>
-                                  <span className="text-xs text-slate-600">{team.region}</span>
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <input
-                          type="text"
-                          value={teamB}
-                          onChange={(e) => setTeamB(e.target.value)}
-                          onFocus={() => setIsFocused(true)}
-                          onBlur={() => setIsFocused(false)}
-                          placeholder="Enter opponent..."
-                          className="flex-1 h-full px-3 bg-transparent text-white placeholder:text-slate-500 focus:outline-none"
-                        />
-                      </div>
+                    <div className="flex-1 flex items-center gap-2 px-3 border-l border-slate-700/50">
+                      <input
+                        type="text"
+                        value={teamB}
+                        onChange={(e) => setTeamB(e.target.value)}
+                        placeholder="Opponent..."
+                        className="flex-1 bg-transparent text-white font-mono placeholder:text-slate-600 focus:outline-none text-sm"
+                      />
                     </div>
-                  </div>
 
-                  {/* Predict Button */}
-                  <div className="mt-4 flex justify-center">
+                    {/* Team B Selector */}
+                    <div className="relative flex items-center">
+                      <button
+                        ref={teamBSelectorRef}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowTeamBSelector(!showTeamBSelector);
+                          setShowTeamASelector(false);
+                        }}
+                        className="flex items-center gap-2 h-16 px-4 border-l border-slate-700/50 text-sm font-mono uppercase tracking-wider text-[#ff4655] hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        <ChevronDown className={cn("w-3 h-3 transition-transform", showTeamBSelector && "rotate-180")} />
+                        <Shield className="w-4 h-4" />
+                      </button>
+
+                      <TeamSelectionWindow
+                        isOpen={showTeamBSelector}
+                        onClose={() => setShowTeamBSelector(false)}
+                        onSelect={(name) => setTeamB(name)}
+                        teams={popularTeams}
+                        triggerRef={teamBSelectorRef}
+                        variant="teamB"
+                        title="OPPONENT"
+                      />
+                    </div>
+
+                    {/* Predict Button */}
                     <button
                       onClick={handleVersusPredict}
                       disabled={!teamA.trim() || !teamB.trim()}
                       className={cn(
-                        "h-12 px-8 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2",
+                        "relative h-full px-6 font-bold text-sm uppercase tracking-wider transition-all duration-200 flex items-center gap-2 overflow-hidden",
                         teamA.trim() && teamB.trim()
-                          ? "bg-gradient-to-r from-[#ff4655] to-[#ff5a67] text-white hover:shadow-lg hover:shadow-[#ff4655]/30 hover:scale-105"
+                          ? "bg-[#ff4655] text-white hover:bg-[#ff5a67]"
                           : "bg-slate-800 text-slate-500 cursor-not-allowed"
                       )}
+                      style={{
+                        clipPath: 'polygon(15px 0, 100% 0, 100% 100%, 0 100%, 0 15px)',
+                        transform: 'skewX(-5deg)',
+                        marginRight: '2px'
+                      }}
                     >
-                      Predict Match
-                      <Crosshair className="w-4 h-4" />
+                      <span style={{ transform: 'skewX(5deg)' }} className="flex items-center gap-2">
+                        Predict
+                        <Crosshair className="w-4 h-4" />
+                      </span>
                     </button>
-                  </div>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
+
 
             {/* Keyboard Hint */}
-            <div className="mt-4 flex items-center justify-center gap-2 text-slate-600 text-sm">
-              <kbd className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-xs font-mono">↵</kbd>
-              <span>{searchMode === 'scouting' ? 'to search' : 'to predict'}</span>
+            <div className="mt-4 flex items-center justify-center gap-2 text-slate-600 text-sm font-mono">
+              <kbd className="px-2 py-1 bg-slate-800/50 border border-slate-700 text-xs">↵</kbd>
+              <span>to execute</span>
             </div>
-          </div>
-
-          {/* Analytics Preview (3D Tilt) */}
-          <div className="mt-16 relative" style={{ perspective: '1000px' }}>
-            <div
-              className="relative bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 max-w-lg mx-auto"
-              style={{ transform: 'rotateX(8deg) rotateY(-2deg)' }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                <div className="w-3 h-3 rounded-full bg-green-500" />
-                <span className="ml-auto text-xs text-slate-500 font-mono">report.tsx</span>
-              </div>
-              <pre className="text-left text-[11px] sm:text-xs text-slate-400 font-mono leading-relaxed overflow-hidden">
-                <code>{`{
-  "team": "Sentinels",
-  "exploitability_score": 72,
-  "weaknesses": [
-    "Weak anti-eco (37% loss)",
-    "Poor clutches (28% win)"
-  ],
-  "recommendation": "Force Split"
-}`}</code>
-              </pre>
-            </div>
-            {/* Shadow */}
-            <div className="absolute inset-x-8 -bottom-4 h-8 bg-[#ff4655]/10 blur-2xl rounded-full" />
           </div>
         </div>
+
+        {/* Bottom HUD Elements */}
+        <div className="absolute bottom-8 left-8 flex items-center gap-4 text-xs font-mono text-slate-600">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-[#ff4655] animate-pulse" />
+            <span>ValoML v2.0</span>
+          </div>
+          <div className="w-px h-4 bg-slate-700" />
+          <span>GRID API</span>
+        </div>
+        <div className="absolute bottom-8 right-8 text-xs font-mono text-slate-600 uppercase tracking-wider">
+          Tactical Intelligence System
+        </div>
+
       </section>
 
 
       {/* ============ SECTION 3: SOCIAL PROOF / STATS ============ */}
-      <section className="relative z-10 py-32 border-y border-white/5 bg-slate-950/50">
+      <section className="relative z-10 py-32 border-y border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/50 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
           <div className="text-center mb-12">
             <span className="text-xs uppercase tracking-[0.2em] text-slate-500 font-medium">Trusted by Analysts</span>
           </div>
@@ -571,7 +638,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {stats.map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-white font-mono mb-2">{stat.value}</div>
+                <div className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white font-mono mb-2">{stat.value}</div>
                 <div className="text-sm text-slate-500">{stat.label}</div>
               </div>
             ))}
@@ -583,12 +650,13 @@ export default function Home() {
       {/* ============ SECTION 4: FEATURES GRID ============ */}
       <section id="features" className="relative z-10 py-32 sm:py-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight mb-4">
               Beyond Basic Stats
             </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+            <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
               Machine learning meets esports intelligence. Powered by sklearn, trained on VCT data.
             </p>
           </div>
@@ -623,9 +691,11 @@ export default function Home() {
       </section>
 
 
+
       {/* ============ SECTION 5: CTA ============ */}
       <section className="relative z-10 py-32 sm:py-40">
         <div className="max-w-4xl mx-auto px-4 text-center">
+
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
             Ready to dominate your next match?
           </h2>
@@ -639,12 +709,13 @@ export default function Home() {
             Start Scouting — It&apos;s Free
           </button>
         </div>
-      </section>
+      </section >
 
 
       {/* ============ SECTION 6: FOOTER ============ */}
       <footer className="relative z-10 py-12 border-t border-white/5 bg-slate-950/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             {/* Brand */}
             <div>

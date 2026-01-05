@@ -3,11 +3,26 @@
 
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+
 /* Base styles */
-:root {
-  --background: #020617;
-  --foreground: #f8fafc;
-  --accent: #ff4655;
+@layer base {
+  :root {
+    --background: #f8fafc;
+    /* Slate-50 */
+    --foreground: #0f172a;
+    /* Slate-900 */
+    --accent: #ff4655;
+  }
+
+  .dark {
+    --background: #020617;
+    /* Slate-950 */
+    --foreground: #f8fafc;
+    /* Slate-50 */
+  }
 }
 
 *,
