@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Rajdhani } from "next/font/google";
 import "./globals.css";
 import { ReportProvider } from "@/context/ReportContext";
 import ChatWidget from "@/components/ChatWidget";
@@ -8,6 +8,12 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 const inter = Inter({
   subsets: ["latin"],
   variable: '--font-inter'
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-rajdhani'
 });
 
 export const metadata: Metadata = {
@@ -23,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased`}>
+      <body className={`${inter.variable} ${rajdhani.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

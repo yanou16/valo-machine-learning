@@ -23,6 +23,11 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import TeamSelectionWindow from '@/components/TeamSelectionWindow';
+import StatsSectionHud from '@/components/StatsSectionHud';
+import FeaturesSectionHud from '@/components/FeaturesSectionHud';
+import CtaSection from '@/components/CtaSection';
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -176,70 +181,7 @@ export default function Home() {
 
 
       {/* ============ SECTION 1: NAVBAR ============ */}
-      <nav className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled
-          ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/[0.05]"
-          : "bg-transparent"
-      )}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-[#ff4655] blur-lg opacity-40" />
-                <div className="relative w-9 h-9 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-xl flex items-center justify-center ring-1 ring-white/10">
-                  <Crosshair className="w-5 h-5 text-white" />
-                </div>
-              </div>
-              <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">VALOML</span>
-            </div>
-
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-slate-400 hover:text-white transition-colors">Features</a>
-              <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">Pricing</a>
-              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1.5">
-                <Github className="w-4 h-4" />
-                GitHub
-              </a>
-            </div>
-
-            {/* CTA */}
-            <div className="hidden md:flex items-center gap-4">
-              <ThemeToggle />
-              <button className="px-4 py-2 text-sm text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">
-                Sign In
-              </button>
-              <button className="px-4 py-2 text-sm font-medium text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 hover:border-slate-300 dark:text-white dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:hover:border-white/20 rounded-lg transition-all">
-                Get Started
-              </button>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-slate-400 hover:text-white"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-slate-900/95 backdrop-blur-xl border-t border-white/5">
-            <div className="px-4 py-4 space-y-3">
-              <a href="#features" className="block py-2 text-slate-300 hover:text-white">Features</a>
-              <a href="#" className="block py-2 text-slate-300 hover:text-white">Pricing</a>
-              <a href="https://github.com" className="block py-2 text-slate-300 hover:text-white">GitHub</a>
-              <button className="w-full mt-4 px-4 py-2 text-sm font-medium text-white bg-[#ff4655] rounded-lg">
-                Get Started
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+      <Navbar />
 
 
 
@@ -627,150 +569,25 @@ export default function Home() {
       </section>
 
 
-      {/* ============ SECTION 3: SOCIAL PROOF / STATS ============ */}
-      <section className="relative z-10 py-32 border-y border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/50 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          <div className="text-center mb-12">
-            <span className="text-xs uppercase tracking-[0.2em] text-slate-500 font-medium">Trusted by Analysts</span>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            {stats.map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white font-mono mb-2">{stat.value}</div>
-                <div className="text-sm text-slate-500">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ============ SECTION 3: TACTICAL DATA FEED (HUD STATS) ============ */}
+      <StatsSectionHud />
 
 
-      {/* ============ SECTION 4: FEATURES GRID ============ */}
-      <section id="features" className="relative z-10 py-32 sm:py-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ============ SECTION 4: BEYOND BASIC STATS (HUD FEATURES) ============ */}
+      <FeaturesSectionHud />
 
-          {/* Section Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight mb-4">
-              Beyond Basic Stats
-            </h2>
-            <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-              Machine learning meets esports intelligence. Powered by sklearn, trained on VCT data.
-            </p>
-          </div>
 
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <div
-                key={i}
-                className="group relative bg-slate-900/40 backdrop-blur-xl border border-white/[0.06] rounded-2xl p-8 transition-all duration-300 hover:border-white/[0.12] hover:bg-slate-900/60 hover:-translate-y-1"
-              >
-                {/* Glow on Hover */}
-                <div className={cn(
-                  "absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl",
-                  `bg-gradient-to-br ${feature.color}`
-                )} style={{ opacity: 0.05 }} />
 
-                <div className="relative">
-                  {/* Icon */}
-                  <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-6", feature.bgColor)}>
-                    <feature.icon className={cn("w-6 h-6", `text-transparent bg-clip-text bg-gradient-to-r ${feature.color}`)} style={{ color: feature.color.includes('ff4655') ? '#ff4655' : feature.color.includes('purple') ? '#a855f7' : '#10b981' }} />
-                  </div>
-
-                  {/* Content */}
-                  <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                  <p className="text-slate-400 leading-relaxed">{feature.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
 
 
       {/* ============ SECTION 5: CTA ============ */}
-      <section className="relative z-10 py-32 sm:py-40">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to dominate your next match?
-          </h2>
-          <p className="text-lg text-slate-400 mb-10">
-            Generate your first scouting report in seconds. No signup required.
-          </p>
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="px-8 py-4 bg-gradient-to-r from-[#ff4655] to-[#ff5a67] text-white font-semibold rounded-xl hover:shadow-xl hover:shadow-[#ff4655]/25 transition-all hover:scale-105"
-          >
-            Start Scouting — It&apos;s Free
-          </button>
-        </div>
-      </section >
+      <CtaSection />
 
 
       {/* ============ SECTION 6: FOOTER ============ */}
-      <footer className="relative z-10 py-12 border-t border-white/5 bg-slate-950/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {/* Brand */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-lg flex items-center justify-center">
-                  <Crosshair className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg font-bold text-white">VALOML</span>
-              </div>
-              <p className="text-sm text-slate-500">
-                AI-powered scouting for competitive VALORANT.
-              </p>
-            </div>
-
-            {/* Product */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
-              </ul>
-            </div>
-
-            {/* Resources */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="https://github.com" className="hover:text-white transition-colors">GitHub</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Bottom */}
-          <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-slate-600">
-              © 2026 VALOML. All rights reserved.
-            </p>
-            <p className="text-sm text-slate-600">
-              Built for <span className="text-slate-400">Cloud9 × JetBrains Hackathon</span>
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
