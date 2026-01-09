@@ -33,6 +33,28 @@ export interface ReportData {
         }>;
     };
     insights: string[];
+    roster_intel?: Array<{
+        name: string;
+        agent: string;
+        role: string;
+        tendencies: {
+            aggression_score: number;
+            survival_rate: number;
+            primary_weapon: string;
+            badges: string[];
+        };
+        defensive_setup: {
+            map: string;
+            preferred_site: string;
+            hold_frequency: string;
+        };
+        stats: {
+            matches_analyzed: number;
+            kd: number;
+            opening_duels: number;
+            opening_success: number;
+        };
+    }>;
 }
 
 interface ReportContextType {

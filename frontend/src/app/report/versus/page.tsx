@@ -3,8 +3,9 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Crosshair, Trophy, Map, Target, TrendingUp, ArrowLeft, Loader2 } from 'lucide-react';
+import { Crosshair, Trophy, Map, Target, TrendingUp, ArrowLeft, Loader2, Zap, Skull } from 'lucide-react';
 import Link from 'next/link';
+import { formatMapName } from '@/lib/mapUtils';
 
 // Types
 interface TeamStats {
@@ -16,6 +17,8 @@ interface TeamStats {
     best_map_winrate: number;
     recent_form: string;
     win_probability: number;
+    pistol_round_win_rate?: number;
+    first_blood_percentage?: number;
 }
 
 interface Comparison {
@@ -164,7 +167,7 @@ function VersusPageContent() {
                             <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ff4655] to-[#ff8080]">
                                 {team1.name.toUpperCase()}
                             </h1>
-                            <p className="text-slate-500 mt-1">Best Map: {team1.best_map}</p>
+                            <p className="text-slate-500 mt-1">Best Map: {formatMapName(team1.best_map)}</p>
                         </div>
 
                         {/* VS Badge */}
@@ -179,7 +182,7 @@ function VersusPageContent() {
                             <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
                                 {team2.name.toUpperCase()}
                             </h1>
-                            <p className="text-slate-500 mt-1">Best Map: {team2.best_map}</p>
+                            <p className="text-slate-500 mt-1">Best Map: {formatMapName(team2.best_map)}</p>
                         </div>
                     </div>
 
@@ -258,11 +261,31 @@ function VersusPageContent() {
                         {/* Best Map */}
                         <ComparisonRow
                             label="Best Map Performance"
-                            team1Value={`${comparison.best_map.team1.map} (${comparison.best_map.team1.winrate}%)`}
-                            team2Value={`${comparison.best_map.team2.map} (${comparison.best_map.team2.winrate}%)`}
+                            team1Value={`${formatMapName(comparison.best_map.team1.map)} (${comparison.best_map.team1.winrate}%)`}
+                            team2Value={`${formatMapName(comparison.best_map.team2.map)} (${comparison.best_map.team2.winrate}%)`}
                             advantage={comparison.best_map.advantage}
                             team1Name={team1.name}
                             icon={<TrendingUp className="w-4 h-4" />}
+                        />
+
+                        {/* Pistol Round WR */}
+                        <ComparisonRow
+                            label="Pistol Round WR"
+                            team1Value={`${team1.pistol_round_win_rate || 50}%`}
+                            team2Value={`${team2.pistol_round_win_rate || 50}%`}
+                            advantage={(team1.pistol_round_win_rate || 50) > (team2.pistol_round_win_rate || 50) ? team1.name : team2.name}
+                            team1Name={team1.name}
+                            icon={<Zap className="w-4 h-4" />}
+                        />
+
+                        {/* First Blood % */}
+                        <ComparisonRow
+                            label="First Blood %"
+                            team1Value={`${team1.first_blood_percentage || 50}%`}
+                            team2Value={`${team2.first_blood_percentage || 50}%`}
+                            advantage={(team1.first_blood_percentage || 50) > (team2.first_blood_percentage || 50) ? team1.name : team2.name}
+                            team1Name={team1.name}
+                            icon={<Skull className="w-4 h-4" />}
                         />
                     </div>
                 </motion.section>
@@ -279,8 +302,28 @@ function VersusPageContent() {
                             <Crosshair className="w-5 h-5 text-[#ff4655]" />
                         </div>
                         <h3 className="text-lg font-bold">AI Prediction Insight</h3>
+                        {/* Confidence Badge */}
+                        <span className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded ${Math.max(team1.win_probability, team2.win_probability) > 60
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                            }`}>
+                            {Math.max(team1.win_probability, team2.win_probability) > 60 ? '⚡ HIGH CONFIDENCE' : '⚠️ MODERATE'}
+                        </span>
                     </div>
-                    <p className="text-slate-300 leading-relaxed">{prediction_text}</p>
+                    {/* Highlighted prediction text */}
+                    <p className="text-slate-300 leading-relaxed">
+                        {prediction_text.split(' ').map((word, i) => {
+                            const isTeamName = word.toLowerCase().includes(team1.name.toLowerCase()) ||
+                                word.toLowerCase().includes(team2.name.toLowerCase());
+                            const isKeyword = ['dominance', 'advantage', 'superior', 'favored', 'weakness', 'critical'].some(
+                                kw => word.toLowerCase().includes(kw)
+                            );
+                            if (isTeamName || isKeyword) {
+                                return <span key={i} className="font-bold text-white">{word} </span>;
+                            }
+                            return word + ' ';
+                        })}
+                    </p>
                 </motion.section>
             </main>
         </div>
