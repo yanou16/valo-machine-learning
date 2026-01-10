@@ -16,10 +16,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first (leverages Docker layer caching)
-COPY requirements.txt .
+COPY requirements-docker.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (with retry for unstable connections)
+RUN pip install --no-cache-dir --timeout 300 --retries 5 -r requirements-docker.txt
 
 # Copy application code
 COPY . .

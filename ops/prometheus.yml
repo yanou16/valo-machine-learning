@@ -1,0 +1,19 @@
+# =============================================================================
+# Prometheus Configuration for ValoML
+# =============================================================================
+# This file configures Prometheus to scrape metrics from the FastAPI backend.
+# Metrics include: prediction counts, inference latency, and system health.
+# =============================================================================
+
+global:
+  scrape_interval: 5s      # Fast updates for demo purposes (production: 15s)
+  evaluation_interval: 5s  # How often to evaluate rules
+
+scrape_configs:
+  # ---------------------------------------------------------------------------
+  # ValoML Backend Scrape Job
+  # ---------------------------------------------------------------------------
+  - job_name: 'valoml-backend'
+    static_configs:
+      - targets: ['backend:8000']  # Docker service name, not localhost
+    metrics_path: '/metrics'       # Endpoint exposed by FastAPI

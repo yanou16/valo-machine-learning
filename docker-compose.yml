@@ -19,6 +19,9 @@ services:
     container_name: valoml-backend
     ports:
       - "8000:8000"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       # Mount source code for hot-reload during development
       - ./backend:/app
@@ -78,9 +81,57 @@ services:
     networks:
       - valoml-network
 
+  # ---------------------------------------------------------------------------
+  # Prometheus - Metrics Collection & Storage
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: valoml-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - backend
+    networks:
+      - valoml-network
+
+  # ---------------------------------------------------------------------------
+  # Grafana - Metrics Visualization & Dashboards
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    container_name: valoml-grafana
+    ports:
+      - "3001:3000" # Host 3001 to avoid conflict with frontend
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=valoml2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - valoml-network
+
 # =============================================================================
 # Network Configuration
 # =============================================================================
 networks:
   valoml-network:
     driver: bridge
+
+# =============================================================================
+# Persistent Volumes
+# =============================================================================
+volumes:
+  prometheus_data:
+  grafana_data:
+
+
