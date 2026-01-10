@@ -1,14 +1,86 @@
-version: '3.8'
+# =============================================================================
+# ValoML Docker Compose
+# Production-ready stack for Hackathon demonstration
+# =============================================================================
+# Services:
+#   - backend:  FastAPI ML backend (port 8000)
+#   - frontend: Next.js frontend (port 3000)
+#   - mlflow:   Experiment tracking UI (port 5000)
+# =============================================================================
 
 services:
+  # ---------------------------------------------------------------------------
+  # FastAPI Backend Service
+  # ---------------------------------------------------------------------------
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: valoml-backend
     ports:
       - "8000:8000"
     volumes:
+      # Mount source code for hot-reload during development
       - ./backend:/app
-      - ./data:/app/data
-      - ./.env:/app/.env
+      # Persist MLflow experiment data
+      - ./backend/mlruns:/app/mlruns
+      # Persist trained models
+      - ./backend/models:/app/models
     environment:
       - PYTHONUNBUFFERED=1
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      - MLFLOW_TRACKING_URI=file:///app/mlruns
+    networks:
+      - valoml-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Next.js Frontend Service
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Build-time API URL (used during Next.js build for client-side)
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    container_name: valoml-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Client-side API calls (browser -> host machine)
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      # Server-side API calls (container -> container via Docker network)
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - valoml-network
+
+  # ---------------------------------------------------------------------------
+  # MLflow Experiment Tracking Service
+  # ---------------------------------------------------------------------------
+  mlflow:
+    image: python:3.11-slim
+    container_name: valoml-mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount MLflow runs directory to persist experiments
+      - ./backend/mlruns:/mlruns
+    working_dir: /mlruns
+    command: >
+      bash -c "pip install mlflow==2.9.0 && 
+               mlflow ui --host 0.0.0.0 --port 5000 --backend-store-uri file:///mlruns"
+    networks:
+      - valoml-network
+
+# =============================================================================
+# Network Configuration
+# =============================================================================
+networks:
+  valoml-network:
+    driver: bridge

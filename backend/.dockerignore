@@ -1,0 +1,31 @@
+# Virtual environments
+venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# MLflow data (mounted as volume)
+mlruns/
+
+# Models (mounted as volume)
+models/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.egg-info/
+dist/
+build/

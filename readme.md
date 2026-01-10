@@ -41,6 +41,14 @@ Compares two teams head-to-head with a weighted predictive model considering **M
 
 ---
 
+### 🔬 MLOps & Experiment Tracking
+To ensure scientific rigor, we use **MLflow** to track our K-Means clustering experiments.
+![MLflow Tracking](./assets/mlflow_tracking.png)
+> *Snapshot of a training run: achieving a Silhouette Score of 0.99 with k=5 clusters, demonstrating high cluster separation.*
+![alt text](image.png)
+
+
+
 ## 🛠️ Architecture & Tech Stack
 
 ValoML is built on a high-performance **Hybrid Data Engine**.
