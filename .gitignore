@@ -1,3 +1,35 @@
-
 # SSH Key - NEVER commit this!
 *.pem
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+override.tf
+override.tf.json
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+backend/mlruns/
+backend/models/*.pkl
+
+# Node / Web
+node_modules/
+.next/
+out/
+build/
+dist/
+.DS_Store

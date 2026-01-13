@@ -41,6 +41,14 @@ resource "aws_security_group" "valoml_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Autoriser MLflow (5000)
+  ingress {
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Autoriser tout le monde à sortir (Internet)
   egress {
     from_port   = 0
