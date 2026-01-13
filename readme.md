@@ -48,6 +48,12 @@ To ensure scientific rigor, we use **MLflow** to track our K-Means clustering ex
 ![alt text](image.png)
 
 
+### 📊 Observability & Monitoring
+We don't just deploy; we monitor. The stack includes a **Prometheus + Grafana** pipeline to track inference latency and API health in real-time.
+
+![Grafana Dashboard](./assets/grafana_monitoring.png)
+> *Real-time dashboard tracking the `valoml_requests_total` metric and service uptime, ensuring high availability for competitive play.*
+![alt text](image-1.png)
 
 ## 🛠️ Architecture & Tech Stack
 

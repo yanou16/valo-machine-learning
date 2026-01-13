@@ -49,13 +49,13 @@ services:
       dockerfile: Dockerfile
       args:
         # Build-time API URL (used during Next.js build for client-side)
-        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_API_URL: http://3.91.216.246:8000
     container_name: valoml-frontend
     ports:
       - "3000:3000"
     environment:
       # Client-side API calls (browser -> host machine)
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://3.91.216.246:8000
       # Server-side API calls (container -> container via Docker network)
       - API_URL=http://backend:8000
     depends_on:
