@@ -75,16 +75,23 @@ async def generate_scouting_report(request: ReportRequest):
         for series_meta in series_list:
             if len(detailed_series) >= request.num_matches:
                 break
-            series_state = await grid_client.get_series_state(series_meta["id"])
-            games = series_state.get("games", []) if series_state else []
-            if series_state and games:
-                detailed_series.append(series_state)
-                metadata_list.append(series_meta)
+            try:
+                series_state = await grid_client.get_series_state(series_meta["id"])
+                # Handle None, empty dict, or missing games
+                if series_state and isinstance(series_state, dict):
+                    games = series_state.get("games", [])
+                    if games and len(games) > 0:
+                        detailed_series.append(series_state)
+                        metadata_list.append(series_meta)
+            except Exception as e:
+                # Skip this series if there's an error fetching it
+                print(f"[WARN] Failed to fetch series {series_meta.get('id')}: {e}")
+                continue
         
         if not detailed_series:
             raise HTTPException(
                 status_code=404,
-                detail=f"No match data available for {request.team_name}"
+                detail=f"No match data available for {request.team_name}. The team exists but GRID may not have detailed game data for recent matches."
             )
         
         # 4. Analyze

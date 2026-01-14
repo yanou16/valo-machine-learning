@@ -93,8 +93,12 @@ class GridClient:
         )
         
         teams = []
-        for edge in result.get("data", {}).get("teams", {}).get("edges", []):
-            teams.append(edge["node"])
+        data = result.get("data") or {}
+        teams_data = data.get("teams") or {}
+        edges = teams_data.get("edges") or []
+        for edge in edges:
+            if edge and "node" in edge:
+                teams.append(edge["node"])
         return teams
     
     async def get_team_series(
@@ -152,8 +156,15 @@ class GridClient:
         
         # Filter to only past series (before now)
         series = []
-        for edge in result.get("data", {}).get("allSeries", {}).get("edges", []):
+        data = result.get("data") or {}
+        all_series = data.get("allSeries") or {}
+        edges = all_series.get("edges") or []
+        for edge in edges:
+            if not edge or "node" not in edge:
+                continue
             node = edge["node"]
+            if not node:
+                continue
             scheduled = node.get("startTimeScheduled", "")
             if scheduled:
                 try:

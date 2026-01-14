@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile
     container_name: valoml-backend
     ports:
-      - "8000:8000"
+      - "8081:8000"
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -32,6 +32,8 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MLFLOW_TRACKING_URI=file:///app/mlruns
+      - GRID_API_KEY=${GRID_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
     networks:
       - valoml-network
     healthcheck:
@@ -49,13 +51,13 @@ services:
       dockerfile: Dockerfile
       args:
         # Build-time API URL (used during Next.js build for client-side)
-        NEXT_PUBLIC_API_URL: http://3.91.216.246:8000
+        NEXT_PUBLIC_API_URL: http://localhost:8081
     container_name: valoml-frontend
     ports:
       - "3000:3000"
     environment:
       # Client-side API calls (browser -> host machine)
-      - NEXT_PUBLIC_API_URL=http://3.91.216.246:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8081
       # Server-side API calls (container -> container via Docker network)
       - API_URL=http://backend:8000
     depends_on:

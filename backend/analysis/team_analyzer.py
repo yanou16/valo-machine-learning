@@ -161,7 +161,11 @@ class TeamAnalyzer:
         
         # Track tournament stats from metadata
         if metadata:
-            tournament_name = metadata.get("tournament", {}).get("name", "Unknown")
+            tournament = metadata.get("tournament")
+            if tournament and isinstance(tournament, dict):
+                tournament_name = tournament.get("name", "Unknown")
+            else:
+                tournament_name = "Unknown"
             if tournament_name not in self.stats.tournaments:
                 self.stats.tournaments[tournament_name] = {"matches": 0, "wins": 0}
             self.stats.tournaments[tournament_name]["matches"] += 1

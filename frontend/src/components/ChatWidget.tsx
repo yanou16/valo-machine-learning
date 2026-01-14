@@ -152,7 +152,7 @@ export default function ChatWidget() {
             // Include conversation history
             const history = buildHistoryContext();
 
-            const response = await fetch('http://localhost:8001/api/chat', {
+            const response = await fetch('http://localhost:8081/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

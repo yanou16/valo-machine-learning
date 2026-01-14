@@ -84,7 +84,7 @@ function VersusPageContent() {
             }
 
             try {
-                const response = await fetch('http://localhost:8001/api/report/versus', {
+                const response = await fetch('http://localhost:8081/api/report/versus', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ team1_name: team1Param, team2_name: team2Param, match_count: 10 })
@@ -304,8 +304,8 @@ function VersusPageContent() {
                         <h3 className="text-lg font-bold">AI Prediction Insight</h3>
                         {/* Confidence Badge */}
                         <span className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider rounded ${Math.max(team1.win_probability, team2.win_probability) > 60
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
                             }`}>
                             {Math.max(team1.win_probability, team2.win_probability) > 60 ? '⚡ HIGH CONFIDENCE' : '⚠️ MODERATE'}
                         </span>
