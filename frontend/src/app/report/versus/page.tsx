@@ -84,7 +84,8 @@ function VersusPageContent() {
             }
 
             try {
-                const response = await fetch('http://localhost:8081/api/report/versus', {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+                const response = await fetch(`${apiUrl}/api/report/versus`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ team1_name: team1Param, team2_name: team2Param, match_count: 10 })

@@ -152,7 +152,8 @@ export default function ChatWidget() {
             // Include conversation history
             const history = buildHistoryContext();
 
-            const response = await fetch('http://localhost:8081/api/chat', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+            const response = await fetch(`${apiUrl}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
