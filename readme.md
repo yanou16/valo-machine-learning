@@ -145,7 +145,7 @@ ValoML directly addresses all **Category 2: Automated Scouting Report Generator*
 We don't just deploy models — we **track and monitor** them like a production ML system:
 
 ![ValoML MLOps Cycle](docs/mlops_diagram.png)
-![alt text](image-2.png)
+
 
 ### MLflow Integration
 - **Experiment Tracking** — Every K-Means training run logged with parameters and metrics
