@@ -5,10 +5,12 @@
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
 crash.log
 *.tfvars
 override.tf
 override.tf.json
+.terraform.lock.hcl
 
 # Environment
 .env
@@ -33,3 +35,9 @@ out/
 build/
 dist/
 .DS_Store
+
+# Generated images from notebooks (can be regenerated)
+*.png
+
+# Notebook enhancement script (temporary)
+enhance_notebook.py
